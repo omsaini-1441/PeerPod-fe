@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/components/providers/auth-provider";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +26,10 @@ export default function LoginPage() {
 
     try {
       await login({ username, password });
-      router.push("/pods");
+      const next = searchParams.get("next");
+      const safeNext =
+        next && next.startsWith("/") && !next.startsWith("//") ? next : "/pods";
+      router.replace(safeNext);
     } catch (caughtError) {
       setError(
         caughtError instanceof ApiError
@@ -35,61 +43,64 @@ export default function LoginPage() {
 
   return (
     <section className="mx-auto max-w-md py-12">
-      <div className="rounded-[2rem] border border-white/10 bg-slate-950/60 p-8 shadow-2xl shadow-slate-950/30">
-        <p className="text-sm uppercase tracking-[0.3em] text-indigo-200/70">
-          Welcome back
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold text-white">Log into PeerPod</h1>
-        <p className="mt-2 text-sm text-slate-400">
-          Pick up where your pod leaderboard left off.
-        </p>
+      <Card>
+        <CardContent className="p-8">
+          <p className="text-sm uppercase tracking-[0.3em] text-indigo-200/70">
+            Welcome back
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold text-white">Log into PeerPod</h1>
+          <p className="mt-2 text-sm text-slate-400">
+            Pick up where your pod leaderboard left off.
+          </p>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-          <label className="block space-y-2">
-            <span className="text-sm text-slate-300">Username</span>
-            <input
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none ring-0 placeholder:text-slate-500"
-              placeholder="alice"
-              required
-            />
-          </label>
+          <form onSubmit={handleSubmit} className="mt-8 space-y-4" autoComplete="on">
+            <label className="block space-y-2">
+              <span className="text-sm text-slate-300">Username</span>
+              <Input
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                autoComplete="username"
+                placeholder="alice"
+                required
+              />
+            </label>
 
-          <label className="block space-y-2">
-            <span className="text-sm text-slate-300">Password</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-slate-500"
-              placeholder="secret123"
-              required
-            />
-          </label>
+            <label className="block space-y-2">
+              <span className="text-sm text-slate-300">Password</span>
+              <Input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="current-password"
+                minLength={1}
+                placeholder="Your password"
+                required
+              />
+            </label>
 
-          {error ? (
-            <p className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">
-              {error}
-            </p>
-          ) : null}
+            {error ? <Alert variant="danger">{error}</Alert> : null}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-2xl bg-indigo-500 px-4 py-3 font-medium text-white transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {submitting ? "Logging in..." : "Log in"}
-          </button>
-        </form>
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? "Logging in..." : "Log in"}
+            </Button>
+          </form>
 
-        <p className="mt-6 text-sm text-slate-400">
-          No account yet?{" "}
-          <Link href="/register" className="text-indigo-200 hover:text-white">
-            Create one
-          </Link>
-        </p>
-      </div>
+          <p className="mt-6 text-sm text-slate-400">
+            No account yet?{" "}
+            <Link href="/register" className="text-indigo-200 hover:text-white">
+              Create one
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
     </section>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<section className="mx-auto max-w-md py-12 text-slate-300">Loading...</section>}>
+      <LoginForm />
+    </Suspense>
   );
 }

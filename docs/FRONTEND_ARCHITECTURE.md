@@ -32,14 +32,26 @@ Current pages:
 
 ## Auth model
 
-For MVP, the frontend uses the current backend contract directly:
+The frontend uses a same-origin BFF auth pattern:
 
-- login returns a bearer token
-- the token is stored client-side
-- API calls attach `Authorization: Bearer <token>`
-- Socket.IO connects with the same token
+- login happens via `POST /api/auth/login`
+- the backend bearer token is stored in an **httpOnly**, **SameSite=Lax** cookie
+- the browser never keeps the access token in `localStorage`
+- authenticated REST calls go through `/api/backend/*`, which attaches `Authorization` server-side
+- middleware blocks unauthenticated access to `/pods` and `/profile`
+- Socket.IO connects to the **same frontend origin** and is rewritten to the backend (`/socket.io` → `API_BASE_URL`), so the browser does not hit a cross-origin socket URL
+- a short-lived in-memory token from `GET /api/auth/socket-token` is still used for Socket.IO auth until the backend accepts cookie auth on websockets
 
-This is intentionally simple so frontend progress is not blocked by a backend cookie/session rewrite.
+Do not put access tokens in query strings, localStorage, or client logs.
+
+## Environment
+
+See [`.env.example`](../.env.example):
+
+- `API_BASE_URL` — server-only backend base used by the BFF and socket rewrite
+- `ALLOWED_ORIGINS` — extra browser origins for CSRF checks (LAN IPs, etc.)
+- `NEXT_PUBLIC_SOCKET_URL` — leave unset unless you intentionally want direct cross-origin sockets
+
 
 ## Data flow
 

@@ -30,7 +30,13 @@ PeerPod frontend is a separate Next.js App Router app that talks to the PeerPod 
 npm install
 ```
 
-2. Copy env values from `.env.example`.
+2. Copy env values from `.env.example` into `.env.local`.
+
+Auth + API are same-origin through the Next.js BFF:
+
+- browser → `/api/auth/*` and `/api/backend/*` (no CORS)
+- browser → `/socket.io` rewritten to `API_BASE_URL` (no CORS)
+- set `ALLOWED_ORIGINS` if you open the app via a LAN IP like `http://192.168.x.x:3000`
 
 3. Start the app:
 

@@ -10,9 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function Home() {
-  const { token } = useAuth();
-  const ctaHref = useMemo(() => (token ? "/pods" : "/register"), [token]);
-  const ctaLabel = token ? "Open your pods" : "Create your account";
+  const { isAuthenticated } = useAuth();
+  const ctaHref = useMemo(
+    () => (isAuthenticated ? "/pods" : "/register"),
+    [isAuthenticated],
+  );
+  const ctaLabel = isAuthenticated ? "Open your pods" : "Create your account";
 
   return (
     <section className="grid gap-10 py-10 lg:grid-cols-[1.3fr_0.9fr] lg:items-center lg:py-20">

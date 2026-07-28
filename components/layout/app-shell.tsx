@@ -15,13 +15,13 @@ const navItems = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { authUser, token, logout } = useAuth();
+  const { authUser, isAuthenticated, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(79,70,229,0.18),_transparent_35%),linear-gradient(180deg,#0b1020_0%,#0f172a_45%,#020617_100%)] text-slate-100">
       <header className="border-b border-white/10 bg-slate-950/60 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link href={token ? "/pods" : "/login"} className="flex items-center gap-3">
+          <Link href={isAuthenticated ? "/pods" : "/login"} className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500/20 text-lg font-semibold text-indigo-200">
               PP
             </div>
@@ -36,7 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
 
           <div className="flex items-center gap-4">
-            {token ? (
+            {isAuthenticated ? (
               <>
                 <nav className="hidden items-center gap-2 md:flex">
                   {navItems.map((item) => {
@@ -62,7 +62,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <Badge variant="glow">Ready to move the board</Badge>
                   </div>
                 </div>
-                <Button type="button" variant="secondary" size="sm" onClick={logout}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    void logout().then(() => {
+                      window.location.assign("/login");
+                    });
+                  }}
+                >
                   Logout
                 </Button>
               </>

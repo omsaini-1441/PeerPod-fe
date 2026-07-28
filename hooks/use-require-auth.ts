@@ -9,10 +9,10 @@ export function useRequireAuth() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!auth.loading && !auth.token) {
+    if (!auth.loading && !auth.isAuthenticated) {
       router.replace("/login");
     }
-  }, [auth.loading, auth.token, router]);
+  }, [auth.loading, auth.isAuthenticated, router]);
 
   return auth;
 }

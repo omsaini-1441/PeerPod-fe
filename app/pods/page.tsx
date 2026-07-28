@@ -16,7 +16,7 @@ import { PanelMessage } from "@/components/ui/panel-message";
 import { Select } from "@/components/ui/select";
 
 export default function PodsPage() {
-  const { token, loading } = useRequireAuth();
+  const { isAuthenticated, loading } = useRequireAuth();
   const [groups, setGroups] = useState<Group[]>([]);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,14 +28,14 @@ export default function PodsPage() {
   const [joinCode, setJoinCode] = useState<Record<number, string>>({});
 
   const loadGroups = useCallback(async () => {
-    if (!token) {
+    if (!isAuthenticated) {
       return;
     }
 
     setFetching(true);
     setError(null);
     try {
-      const nextGroups = await apiRequest<Group[]>("/groups", { token });
+      const nextGroups = await apiRequest<Group[]>("/groups");
       setGroups(nextGroups);
     } catch (caughtError) {
       setError(
@@ -46,10 +46,10 @@ export default function PodsPage() {
     } finally {
       setFetching(false);
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    if (!token) {
+    if (!isAuthenticated) {
       return;
     }
 
@@ -58,11 +58,11 @@ export default function PodsPage() {
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [token, loadGroups]);
+  }, [isAuthenticated, loadGroups]);
 
   async function handleCreatePod(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!token) {
+    if (!isAuthenticated) {
       return;
     }
 
@@ -70,7 +70,6 @@ export default function PodsPage() {
     try {
       await apiRequest<Group>("/groups", {
         method: "POST",
-        token,
         body: JSON.stringify({
           name: createName,
           visibility,
@@ -92,7 +91,7 @@ export default function PodsPage() {
   }
 
   async function handleJoin(group: Group) {
-    if (!token) {
+    if (!isAuthenticated) {
       return;
     }
 
@@ -100,7 +99,6 @@ export default function PodsPage() {
     try {
       await apiRequest(`/groups/${group.id}/join`, {
         method: "POST",
-        token,
         body: JSON.stringify(
           group.visibility === "PRIVATE"
             ? { inviteCode: joinCode[group.id] ?? "" }

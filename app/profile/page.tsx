@@ -5,14 +5,14 @@ import { ApiError, apiRequest } from "@/lib/api";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 
 export default function ProfilePage() {
-  const { loading, token, profile, refreshProfile } = useRequireAuth();
+  const { loading, isAuthenticated, profile, refreshProfile } = useRequireAuth();
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!token) {
+    if (!isAuthenticated) {
       return;
     }
 
@@ -21,6 +21,11 @@ export default function ProfilePage() {
     const email = String(formData.get("email") ?? "");
     const password = String(formData.get("password") ?? "");
 
+    if (password && password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
     setMessage(null);
@@ -28,7 +33,6 @@ export default function ProfilePage() {
     try {
       await apiRequest("/users/me", {
         method: "PATCH",
-        token,
         body: JSON.stringify({
           username,
           email,
@@ -80,10 +84,11 @@ export default function ProfilePage() {
         <p className="text-sm uppercase tracking-[0.3em] text-slate-400">
           Account settings
         </p>
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4" autoComplete="on">
           <Field label="Username">
             <input
               name="username"
+              autoComplete="username"
               defaultValue={profile.username}
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none"
               required
@@ -93,6 +98,7 @@ export default function ProfilePage() {
             <input
               name="email"
               type="email"
+              autoComplete="email"
               defaultValue={profile.email}
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none"
               required
@@ -102,6 +108,8 @@ export default function ProfilePage() {
             <input
               name="password"
               type="password"
+              autoComplete="new-password"
+              minLength={8}
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none"
               placeholder="Leave blank to keep current password"
             />

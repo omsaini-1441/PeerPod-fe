@@ -9,14 +9,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { apiRequest } from "@/lib/api";
-import {
-  clearStoredAuth,
-  loadStoredAuth,
-  saveStoredAuth,
-  type StoredAuth,
-} from "@/lib/auth-storage";
-import type { LoginResponse, Profile } from "@/lib/types";
+import { ApiError, apiRequest, authRequest } from "@/lib/api";
+import { clearLegacyAuthStorage } from "@/lib/auth-storage";
+import type { AuthUser, Profile } from "@/lib/types";
 
 interface RegisterInput {
   username: string;
@@ -29,72 +24,100 @@ interface LoginInput {
   password: string;
 }
 
+interface SessionResponse {
+  authenticated: boolean;
+  user?: AuthUser;
+  profile?: Profile;
+}
+
 interface AuthContextValue {
-  token: string | null;
-  authUser: StoredAuth["user"] | null;
+  isAuthenticated: boolean;
+  authUser: AuthUser | null;
   profile: Profile | null;
   loading: boolean;
   login: (input: LoginInput) => Promise<void>;
   register: (input: RegisterInput) => Promise<string>;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  getSocketToken: () => Promise<string>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [initialAuth] = useState<StoredAuth | null>(() => loadStoredAuth());
-  const [token, setToken] = useState<string | null>(initialAuth?.token ?? null);
-  const [authUser, setAuthUser] = useState<StoredAuth["user"] | null>(
-    initialAuth?.user ?? null,
-  );
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(Boolean(initialAuth?.token));
+  const [loading, setLoading] = useState(true);
 
-  const refreshProfileInternal = useCallback(async (currentToken: string) => {
+  const applyLoggedOut = useCallback(() => {
+    setAuthUser(null);
+    setProfile(null);
+  }, []);
+
+  const refreshSession = useCallback(async () => {
     try {
-      const nextProfile = await apiRequest<Profile>("/users/me", {
-        token: currentToken,
+      const session = await authRequest<SessionResponse>("/api/auth/session", {
+        method: "GET",
       });
-      setProfile(nextProfile);
+
+      if (!session.authenticated || !session.user) {
+        applyLoggedOut();
+        return;
+      }
+
+      setAuthUser(session.user);
+      setProfile(session.profile ?? null);
     } catch {
-      clearStoredAuth();
-      setToken(null);
-      setAuthUser(null);
-      setProfile(null);
+      applyLoggedOut();
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [applyLoggedOut]);
 
   useEffect(() => {
-    if (token) {
-      const timeoutId = window.setTimeout(() => {
-        void refreshProfileInternal(token);
-      }, 0);
+    clearLegacyAuthStorage();
+    const timeoutId = window.setTimeout(() => {
+      void refreshSession();
+    }, 0);
 
-      return () => window.clearTimeout(timeoutId);
+    return () => window.clearTimeout(timeoutId);
+  }, [refreshSession]);
+
+  useEffect(() => {
+    function onUnauthorized() {
+      applyLoggedOut();
+      if (window.location.pathname.startsWith("/pods") || window.location.pathname.startsWith("/profile")) {
+        window.location.assign("/login");
+      }
     }
-  }, [token, refreshProfileInternal]);
+
+    window.addEventListener("peerpod:unauthorized", onUnauthorized);
+    return () => window.removeEventListener("peerpod:unauthorized", onUnauthorized);
+  }, [applyLoggedOut]);
 
   const login = useCallback(async (input: LoginInput) => {
-    const response = await apiRequest<LoginResponse>("/auth/login", {
+    const response = await authRequest<{ user: AuthUser }>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify(input),
     });
 
-    const stored = {
-      token: response.token,
-      user: response.user,
-    };
-    saveStoredAuth(stored);
-    setToken(stored.token);
-    setAuthUser(stored.user);
-    await refreshProfileInternal(stored.token);
-  }, [refreshProfileInternal]);
+    setAuthUser(response.user);
+    setLoading(true);
+    try {
+      const profile = await apiRequest<Profile>("/users/me");
+      setProfile(profile);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        applyLoggedOut();
+      }
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [applyLoggedOut]);
 
   const register = useCallback(async (input: RegisterInput) => {
-    const response = await apiRequest<{ message: string }>("/auth/register", {
+    const response = await authRequest<{ message: string }>("/api/auth/register", {
       method: "POST",
       body: JSON.stringify(input),
     });
@@ -102,24 +125,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return response.message;
   }, []);
 
-  const logout = useCallback(() => {
-    clearStoredAuth();
-    setToken(null);
-    setAuthUser(null);
-    setProfile(null);
-    setLoading(false);
-  }, []);
+  const logout = useCallback(async () => {
+    try {
+      await authRequest("/api/auth/logout", { method: "POST" });
+    } finally {
+      clearLegacyAuthStorage();
+      applyLoggedOut();
+      setLoading(false);
+    }
+  }, [applyLoggedOut]);
 
   const refreshProfile = useCallback(async () => {
-    if (!token) {
+    if (!authUser) {
       return;
     }
-    await refreshProfileInternal(token);
-  }, [token, refreshProfileInternal]);
+
+    try {
+      const nextProfile = await apiRequest<Profile>("/users/me");
+      setProfile(nextProfile);
+      setAuthUser({
+        id: nextProfile.id,
+        username: nextProfile.username,
+        userrole: nextProfile.role,
+      });
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        applyLoggedOut();
+      }
+      throw error;
+    }
+  }, [authUser, applyLoggedOut]);
+
+  const getSocketToken = useCallback(async () => {
+    const response = await authRequest<{ token: string }>("/api/auth/socket-token", {
+      method: "GET",
+    });
+    return response.token;
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      token,
+      isAuthenticated: Boolean(authUser),
       authUser,
       profile,
       loading,
@@ -127,8 +173,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       logout,
       refreshProfile,
+      getSocketToken,
     }),
-    [token, authUser, profile, loading, login, register, logout, refreshProfile],
+    [
+      authUser,
+      profile,
+      loading,
+      login,
+      register,
+      logout,
+      refreshProfile,
+      getSocketToken,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

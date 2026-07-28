@@ -37,7 +37,7 @@ Current priorities:
 ## Known backend realities this frontend should remember
 
 - backend still uses `groups` in routes
-- auth is still bearer-token based
+- backend auth is still bearer-token based, but the frontend stores that token in an httpOnly BFF cookie
 - leaderboard truth comes from backend scoring
 - live data comes from Socket.IO
 - email verification exists but real mail delivery may still be incomplete

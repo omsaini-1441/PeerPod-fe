@@ -1,5 +1,5 @@
 import { io, type Socket } from "socket.io-client";
-import { SOCKET_URL } from "./env";
+import { getSocketUrl } from "./env";
 import type {
   LeaderboardResponse,
   SocketSessionStartedPayload,
@@ -20,11 +20,14 @@ export interface PeerPodClientEvents {
 export function createPeerPodSocket(
   token: string,
 ): Socket<PeerPodSocketEvents, PeerPodClientEvents> {
-  return io(SOCKET_URL, {
+  const url = getSocketUrl();
+
+  return io(url, {
     autoConnect: true,
     auth: { token },
-    extraHeaders: {
-      Authorization: `Bearer ${token}`,
-    },
+    // Prefer websocket; polling still works through the same-origin proxy.
+    transports: ["websocket", "polling"],
+    path: "/socket.io",
+    withCredentials: true,
   });
 }

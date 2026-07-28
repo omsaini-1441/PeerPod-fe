@@ -1,34 +1,15 @@
-import type { AuthUser } from "./types";
+import { LEGACY_AUTH_STORAGE_KEY } from "@/lib/auth/constants";
 
-export const AUTH_STORAGE_KEY = "peerpod-auth";
-
-export interface StoredAuth {
-  token: string;
-  user: AuthUser;
-}
-
-export function loadStoredAuth(): StoredAuth | null {
+/** Remove pre-BFF tokens so XSS cannot keep reading a naked bearer from storage. */
+export function clearLegacyAuthStorage() {
   if (typeof window === "undefined") {
-    return null;
-  }
-
-  const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
-  if (!raw) {
-    return null;
+    return;
   }
 
   try {
-    return JSON.parse(raw) as StoredAuth;
+    window.localStorage.removeItem(LEGACY_AUTH_STORAGE_KEY);
+    window.sessionStorage.removeItem(LEGACY_AUTH_STORAGE_KEY);
   } catch {
-    window.localStorage.removeItem(AUTH_STORAGE_KEY);
-    return null;
+    // Ignore storage access failures (private mode / blocked storage).
   }
-}
-
-export function saveStoredAuth(value: StoredAuth) {
-  window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(value));
-}
-
-export function clearStoredAuth() {
-  window.localStorage.removeItem(AUTH_STORAGE_KEY);
 }

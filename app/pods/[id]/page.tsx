@@ -26,7 +26,7 @@ export default function PodDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const groupId = Number(params.id);
-  const { token, loading, profile } = useRequireAuth();
+  const { isAuthenticated, loading, profile, getSocketToken } = useRequireAuth();
 
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<GroupMember[]>([]);
@@ -49,54 +49,79 @@ export default function PodDetailPage() {
   );
 
   useEffect(() => {
-    if (!token || !groupId) {
+    if (!isAuthenticated || !groupId) {
       return;
     }
 
-    const socket = createPeerPodSocket(token);
-    socket.on("connect", () => {
-      socket.emit("pod.join", { groupId });
-    });
+    let cancelled = false;
+    let socket: ReturnType<typeof createPeerPodSocket> | null = null;
 
-    socket.on("leaderboard.updated", (payload) => {
-      if (payload.groupId === groupId) {
-        setLeaderboard(payload);
-      }
-    });
-
-    socket.on("session.started", (payload) => {
-      if (payload.groupId === groupId) {
-        if (payload.userId === profile?.id) {
-          setActiveSession((current) =>
-            current ?? {
-              id: payload.sessionId,
-              startedAt: payload.startedAt,
-              status: "ACTIVE",
-              group: { id: groupId, name: group?.name ?? "", visibility: "PUBLIC" },
-            },
-          );
+    void (async () => {
+      try {
+        const socketToken = await getSocketToken();
+        if (cancelled) {
+          return;
         }
-        setNotice(`${payload.username} started a focus block.`);
-      }
-    });
 
-    socket.on("session.stopped", (payload) => {
-      if (payload.groupId === groupId) {
-        if (payload.userId === profile?.id) {
-          setActiveSession(null);
+        socket = createPeerPodSocket(socketToken);
+        socket.on("connect", () => {
+          socket?.emit("pod.join", { groupId });
+        });
+
+        socket.on("leaderboard.updated", (payload) => {
+          if (payload.groupId === groupId) {
+            setLeaderboard(payload);
+          }
+        });
+
+        socket.on("session.started", (payload) => {
+          if (payload.groupId === groupId) {
+            if (payload.userId === profile?.id) {
+              setActiveSession((current) =>
+                current ?? {
+                  id: payload.sessionId,
+                  startedAt: payload.startedAt,
+                  status: "ACTIVE",
+                  group: {
+                    id: groupId,
+                    name: group?.name ?? "",
+                    visibility: "PUBLIC",
+                  },
+                },
+              );
+            }
+            setNotice(`${payload.username} started a focus block.`);
+          }
+        });
+
+        socket.on("session.stopped", (payload) => {
+          if (payload.groupId === groupId) {
+            if (payload.userId === profile?.id) {
+              setActiveSession(null);
+            }
+            setNotice(
+              `A focus block ended with ${payload.pointsAwarded} points awarded.`,
+            );
+          }
+        });
+      } catch {
+        if (!cancelled) {
+          setNotice("Live updates unavailable. Refresh if the board looks stale.");
         }
-        setNotice(`A focus block ended with ${payload.pointsAwarded} points awarded.`);
       }
-    });
+    })();
 
     return () => {
-      socket.emit("pod.leave", { groupId });
-      socket.disconnect();
+      cancelled = true;
+      if (socket) {
+        socket.emit("pod.leave", { groupId });
+        socket.disconnect();
+      }
     };
-  }, [token, groupId, profile?.id, group?.name]);
+  }, [isAuthenticated, groupId, profile?.id, group?.name, getSocketToken]);
 
   const loadPodData = useCallback(async () => {
-    if (!token) {
+    if (!isAuthenticated) {
       return;
     }
 
@@ -106,13 +131,13 @@ export default function PodDetailPage() {
     try {
       const [groupData, memberData, leaderboardData, taskData, sessionData] =
         await Promise.all([
-          apiRequest<Group>(`/groups/${groupId}`, { token }),
-          apiRequest<GroupMember[]>(`/groups/${groupId}/members`, { token }),
-          apiRequest<LeaderboardResponse>(`/groups/${groupId}/leaderboard?period=week`, {
-            token,
-          }),
-          apiRequest<Task[]>("/tasks", { token }),
-          apiRequest<FocusSession | null>("/sessions/me/active", { token }),
+          apiRequest<Group>(`/groups/${groupId}`),
+          apiRequest<GroupMember[]>(`/groups/${groupId}/members`),
+          apiRequest<LeaderboardResponse>(
+            `/groups/${groupId}/leaderboard?period=week`,
+          ),
+          apiRequest<Task[]>("/tasks"),
+          apiRequest<FocusSession | null>("/sessions/me/active"),
         ]);
 
       setGroup(groupData);
@@ -129,10 +154,10 @@ export default function PodDetailPage() {
     } finally {
       setLoadingPage(false);
     }
-  }, [token, groupId]);
+  }, [isAuthenticated, groupId]);
 
   useEffect(() => {
-    if (!token || !groupId) {
+    if (!isAuthenticated || !groupId) {
       return;
     }
 
@@ -141,11 +166,11 @@ export default function PodDetailPage() {
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [token, groupId, loadPodData]);
+  }, [isAuthenticated, groupId, loadPodData]);
 
   async function handleCreateTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!token) {
+    if (!isAuthenticated) {
       return;
     }
 
@@ -155,7 +180,6 @@ export default function PodDetailPage() {
     try {
       await apiRequest<Task>("/tasks", {
         method: "POST",
-        token,
         body: JSON.stringify({
           title: newTaskTitle,
           description: newTaskDescription,
@@ -177,7 +201,7 @@ export default function PodDetailPage() {
   }
 
   async function updateTaskStatus(taskId: number, status: Task["status"]) {
-    if (!token) {
+    if (!isAuthenticated) {
       return;
     }
 
@@ -187,7 +211,6 @@ export default function PodDetailPage() {
     try {
       await apiRequest(`/tasks/${taskId}`, {
         method: "PATCH",
-        token,
         body: JSON.stringify({ status }),
       });
       await loadPodData();
@@ -203,7 +226,7 @@ export default function PodDetailPage() {
   }
 
   async function startSession() {
-    if (!token) {
+    if (!isAuthenticated) {
       return;
     }
 
@@ -213,7 +236,6 @@ export default function PodDetailPage() {
     try {
       const session = await apiRequest<FocusSession>("/sessions/start", {
         method: "POST",
-        token,
         body: JSON.stringify({
           groupId,
           ...(selectedTaskId ? { taskId: Number(selectedTaskId) } : {}),
@@ -233,7 +255,7 @@ export default function PodDetailPage() {
   }
 
   async function stopSession() {
-    if (!token || !activeSession) {
+    if (!isAuthenticated || !activeSession) {
       return;
     }
 
@@ -243,7 +265,6 @@ export default function PodDetailPage() {
     try {
       const response = await apiRequest<StopSessionResponse>("/sessions/stop", {
         method: "POST",
-        token,
         body: JSON.stringify({
           sessionId: activeSession.id,
         }),
@@ -264,7 +285,7 @@ export default function PodDetailPage() {
   }
 
   async function leavePod() {
-    if (!token) {
+    if (!isAuthenticated) {
       return;
     }
 
@@ -274,7 +295,6 @@ export default function PodDetailPage() {
     try {
       await apiRequest(`/groups/${groupId}/leave`, {
         method: "DELETE",
-        token,
       });
       router.push("/pods");
     } catch (caughtError) {
