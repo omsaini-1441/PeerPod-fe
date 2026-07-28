@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { Bolt, Crown, Sparkles } from "lucide-react";
 import { useMemo } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Home() {
   const { token } = useAuth();
@@ -11,10 +16,16 @@ export default function Home() {
 
   return (
     <section className="grid gap-10 py-10 lg:grid-cols-[1.3fr_0.9fr] lg:items-center lg:py-20">
-      <div className="space-y-8">
-        <div className="inline-flex rounded-full border border-indigo-400/30 bg-indigo-400/10 px-4 py-2 text-sm text-indigo-100">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="space-y-8"
+      >
+        <Badge variant="glow" className="w-fit">
+          <Sparkles className="h-3.5 w-3.5" />
           Social productivity that actually stays focused
-        </div>
+        </Badge>
         <div className="space-y-5">
           <h1 className="max-w-3xl text-5xl font-semibold tracking-tight text-white md:text-6xl">
             Finish the work because your pod can see the board move.
@@ -27,23 +38,22 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Link
-            href={ctaHref}
-            className="rounded-full bg-indigo-500 px-6 py-3 text-center font-medium text-white transition hover:bg-indigo-400"
-          >
-            {ctaLabel}
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-full border border-white/10 px-6 py-3 text-center font-medium text-slate-200 transition hover:bg-white/5"
-          >
-            Already have an account
-          </Link>
+          <Button asChild size="lg">
+            <Link href={ctaHref}>{ctaLabel}</Link>
+          </Button>
+          <Button asChild size="lg" variant="secondary">
+            <Link href="/login">Already have an account</Link>
+          </Button>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 shadow-2xl shadow-indigo-950/40 backdrop-blur">
-        <div className="space-y-5">
+      <motion.div
+        initial={{ opacity: 0, y: 18, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.4, delay: 0.08 }}
+      >
+        <Card className="border-white/10 bg-slate-900/70">
+          <CardContent className="space-y-5 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
@@ -51,9 +61,10 @@ export default function Home() {
               </p>
               <p className="text-lg font-semibold text-white">Exam Sprint</p>
             </div>
-            <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs text-emerald-300">
+            <Badge variant="accent">
+              <Bolt className="h-3.5 w-3.5" />
               3 focusing now
-            </span>
+            </Badge>
           </div>
 
           <div className="space-y-3">
@@ -61,9 +72,12 @@ export default function Home() {
               { rank: 1, name: "Aarav", points: 18 },
               { rank: 2, name: "Mira", points: 15 },
               { rank: 3, name: "You", points: 14 },
-            ].map((row) => (
-              <div
+            ].map((row, index) => (
+              <motion.div
                 key={row.rank}
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.24, delay: 0.08 * index }}
                 className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/5 px-4 py-3"
               >
                 <div className="flex items-center gap-4">
@@ -75,8 +89,11 @@ export default function Home() {
                     <p className="text-sm text-slate-400">Pod points this week</p>
                   </div>
                 </div>
-                <p className="text-lg font-semibold text-white">{row.points}</p>
-              </div>
+                  <div className="flex items-center gap-2">
+                    {row.rank === 1 ? <Crown className="h-4 w-4 text-amber-300" /> : null}
+                    <p className="text-lg font-semibold text-white">{row.points}</p>
+                  </div>
+                </motion.div>
             ))}
           </div>
 
@@ -87,8 +104,9 @@ export default function Home() {
               Keep the timer alive, finish the task, and the board shifts.
             </p>
           </div>
-        </div>
-      </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </section>
   );
 }

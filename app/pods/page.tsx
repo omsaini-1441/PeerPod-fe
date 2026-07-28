@@ -1,10 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, Lock, Plus, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, apiRequest } from "@/lib/api";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import type { Group } from "@/lib/types";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { PanelMessage } from "@/components/ui/panel-message";
+import { Select } from "@/components/ui/select";
 
 export default function PodsPage() {
   const { token, loading } = useRequireAuth();
@@ -110,157 +119,154 @@ export default function PodsPage() {
   }
 
   if (loading) {
-    return <PodsLoader />;
+    return <PanelMessage message="Loading your pods..." />;
   }
 
   return (
     <section className="space-y-8">
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-[2rem] border border-white/10 bg-slate-950/60 p-6">
-          <p className="text-sm uppercase tracking-[0.3em] text-indigo-200/70">
-            Your world
-          </p>
-          <h1 className="mt-3 text-4xl font-semibold text-white">Pods</h1>
-          <p className="mt-3 max-w-2xl text-slate-300">
-            Join a pod, pick your room, and let the leaderboard make your
-            focus visible.
-          </p>
-        </div>
+        <Card className="overflow-hidden">
+          <CardContent className="p-6">
+            <Badge variant="glow">Your world</Badge>
+            <h1 className="mt-4 text-4xl font-semibold text-white md:text-5xl">Pods</h1>
+            <p className="mt-3 max-w-2xl text-slate-300">
+              Join a pod, pick your room, and let the leaderboard make your focus
+              visible.
+            </p>
+          </CardContent>
+        </Card>
 
-        <form
-          onSubmit={handleCreatePod}
-          className="rounded-[2rem] border border-white/10 bg-slate-950/60 p-6"
-        >
-          <p className="text-sm uppercase tracking-[0.3em] text-slate-400">
-            Create a pod
-          </p>
-          <div className="mt-5 space-y-4">
-            <input
-              value={createName}
-              onChange={(event) => setCreateName(event.target.value)}
-              placeholder="Exam Sprint"
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none"
-              required
-            />
-            <div className="grid gap-4 sm:grid-cols-2">
-              <select
-                value={visibility}
-                onChange={(event) =>
-                  setVisibility(event.target.value as "PUBLIC" | "PRIVATE")
-                }
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none"
-              >
-                <option value="PUBLIC">Public</option>
-                <option value="PRIVATE">Private</option>
-              </select>
-              <input
-                type="number"
-                min="1"
-                value={maxMembers}
-                onChange={(event) => setMaxMembers(event.target.value)}
-                placeholder="Max members"
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none"
+        <Card>
+          <CardHeader>
+            <Badge>
+              <Plus className="h-3.5 w-3.5" />
+              Create a pod
+            </Badge>
+            <CardTitle className="mt-3">Start a room worth showing up for</CardTitle>
+            <CardDescription className="mt-2">
+              Keep it public for easy joins or lock it down for a tighter crew.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCreatePod} className="space-y-4">
+              <Input
+                value={createName}
+                onChange={(event) => setCreateName(event.target.value)}
+                placeholder="Exam Sprint"
+                required
               />
-            </div>
-            {createError ? (
-              <ErrorBanner message={createError} />
-            ) : null}
-            <button
-              type="submit"
-              className="rounded-2xl bg-indigo-500 px-5 py-3 font-medium text-white transition hover:bg-indigo-400"
-            >
-              Create pod
-            </button>
-          </div>
-        </form>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Select
+                  value={visibility}
+                  onChange={(event) =>
+                    setVisibility(event.target.value as "PUBLIC" | "PRIVATE")
+                  }
+                >
+                  <option value="PUBLIC">Public</option>
+                  <option value="PRIVATE">Private</option>
+                </Select>
+                <Input
+                  type="number"
+                  min="1"
+                  value={maxMembers}
+                  onChange={(event) => setMaxMembers(event.target.value)}
+                  placeholder="Max members"
+                />
+              </div>
+              {createError ? <Alert variant="danger">{createError}</Alert> : null}
+              <Button type="submit">Create pod</Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
 
-      {error ? <ErrorBanner message={error} /> : null}
+      <AnimatePresence initial={false}>
+        {error ? (
+          <motion.div
+            key="pods-error"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+          >
+            <Alert variant="danger">{error}</Alert>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {fetching
           ? Array.from({ length: 3 }).map((_, index) => (
-              <div
+              <Card
                 key={index}
-                className="h-56 animate-pulse rounded-[2rem] border border-white/10 bg-white/5"
+                className="h-56 animate-pulse border-white/8 bg-white/5"
               />
             ))
           : groups.map((group) => (
-              <div
+              <motion.div
                 key={group.id}
-                className="rounded-[2rem] border border-white/10 bg-slate-950/60 p-6"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.24 }}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                      {group.visibility}
-                    </p>
-                    <h2 className="mt-2 text-2xl font-semibold text-white">
-                      {group.name}
-                    </h2>
-                  </div>
-                  {group.maxMembers ? (
-                    <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-300">
-                      Cap {group.maxMembers}
-                    </span>
-                  ) : null}
-                </div>
+                <Card className="h-full">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant={group.visibility === "PRIVATE" ? "warning" : "glow"}>
+                            {group.visibility === "PRIVATE" ? (
+                              <Lock className="h-3.5 w-3.5" />
+                            ) : (
+                              <Users className="h-3.5 w-3.5" />
+                            )}
+                            {group.visibility}
+                          </Badge>
+                          {group.maxMembers ? <Badge>Cap {group.maxMembers}</Badge> : null}
+                        </div>
+                        <h2 className="mt-4 text-2xl font-semibold text-white">{group.name}</h2>
+                      </div>
+                    </div>
 
-                {group.visibility === "PRIVATE" ? (
-                  <div className="mt-5 space-y-3">
-                    <input
-                      value={joinCode[group.id] ?? ""}
-                      onChange={(event) =>
-                        setJoinCode((current) => ({
-                          ...current,
-                          [group.id]: event.target.value,
-                        }))
-                      }
-                      placeholder="Invite code"
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none"
-                    />
-                    {group.inviteCode ? (
-                      <p className="text-xs text-slate-500">
-                        Owner code: {group.inviteCode}
+                    {group.visibility === "PRIVATE" ? (
+                      <div className="mt-5 space-y-3">
+                        <Input
+                          value={joinCode[group.id] ?? ""}
+                          onChange={(event) =>
+                            setJoinCode((current) => ({
+                              ...current,
+                              [group.id]: event.target.value,
+                            }))
+                          }
+                          placeholder="Invite code"
+                        />
+                        {group.inviteCode ? (
+                          <p className="text-xs text-slate-500">
+                            Owner code: {group.inviteCode}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <p className="mt-5 text-sm text-slate-400">
+                        Open room. Join fast and let the board do the rest.
                       </p>
-                    ) : null}
-                  </div>
-                ) : null}
+                    )}
 
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handleJoin(group)}
-                    className="rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-emerald-400"
-                  >
-                    Join
-                  </button>
-                  <Link
-                    href={`/pods/${group.id}`}
-                    className="rounded-2xl border border-white/10 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/5"
-                  >
-                    Open pod
-                  </Link>
-                </div>
-              </div>
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <Button type="button" variant="accent" onClick={() => handleJoin(group)}>
+                        Join
+                      </Button>
+                      <Button asChild type="button" variant="secondary">
+                        <Link href={`/pods/${group.id}`}>
+                          Open pod
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
       </div>
     </section>
-  );
-}
-
-function PodsLoader() {
-  return (
-    <div className="rounded-[2rem] border border-white/10 bg-slate-950/60 p-10 text-center text-slate-300">
-      Loading your pods...
-    </div>
-  );
-}
-
-function ErrorBanner({ message }: { message: string }) {
-  return (
-    <p className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">
-      {message}
-    </p>
   );
 }

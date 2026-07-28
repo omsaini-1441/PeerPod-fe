@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/pods", label: "Pods" },
@@ -38,43 +42,38 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   {navItems.map((item) => {
                     const active = pathname.startsWith(item.href);
                     return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`rounded-full px-4 py-2 text-sm transition ${
-                          active
-                            ? "bg-indigo-500 text-white"
-                            : "text-slate-300 hover:bg-white/5"
-                        }`}
-                      >
-                        {item.label}
-                      </Link>
+                      <motion.div key={item.href} whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            buttonVariants({ variant: active ? "default" : "ghost", size: "sm" }),
+                            "rounded-full",
+                          )}
+                        >
+                          {item.label}
+                        </Link>
+                      </motion.div>
                     );
                   })}
                 </nav>
                 <div className="hidden text-right sm:block">
                   <p className="text-sm font-medium text-white">{authUser?.username}</p>
-                  <p className="text-xs text-slate-400">Ready to move the board</p>
+                  <div className="mt-1 flex justify-end">
+                    <Badge variant="glow">Ready to move the board</Badge>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/5"
-                >
+                <Button type="button" variant="secondary" size="sm" onClick={logout}>
                   Logout
-                </button>
+                </Button>
               </>
             ) : (
               <nav className="flex items-center gap-2">
-                <Link
-                  href="/login"
-                  className="rounded-full px-4 py-2 text-sm text-slate-300 transition hover:bg-white/5"
-                >
+                <Link href="/login" className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "rounded-full")}>
                   Login
                 </Link>
                 <Link
                   href="/register"
-                  className="rounded-full bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-400"
+                  className={cn(buttonVariants({ variant: "default", size: "sm" }), "rounded-full")}
                 >
                   Create account
                 </Link>
