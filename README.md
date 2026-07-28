@@ -1,3 +1,61 @@
+# PeerPod Frontend
+
+PeerPod frontend is a separate Next.js App Router app that talks to the PeerPod backend.
+
+## Stack
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS
+- Socket.IO client
+
+## Features in this repo
+
+- Register and login flows
+- Pod list with create and join actions
+- Pod detail page with:
+  - leaderboard
+  - pod-linked tasks
+  - focus session start/stop
+  - members list
+  - live leaderboard/session updates
+- Profile page
+
+## Local setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Copy env values from `.env.example`.
+
+3. Start the app:
+
+```bash
+npm run dev
+```
+
+By default the app expects the backend at `http://localhost:3001`.
+
+## Backend contract
+
+This app was built against the backend docs in the backend repo:
+
+- `docs/API_CONTRACT.md`
+- `docs/PRODUCT_AND_STACK.md`
+- `docs/SYSTEM_DESIGN.md`
+
+## Frontend-local docs
+
+This repo also keeps its own context docs in:
+
+- `docs/README.md`
+- `docs/OVERVIEW.md`
+- `docs/FRONTEND_ARCHITECTURE.md`
+- `docs/IMPLEMENTATION_NOTES.md`
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
