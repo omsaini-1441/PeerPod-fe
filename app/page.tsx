@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Bolt, Crown, Sparkles } from "lucide-react";
 import { useMemo } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Badge } from "@/components/ui/badge";
@@ -18,25 +17,27 @@ export default function Home() {
   const ctaLabel = isAuthenticated ? "Open your pods" : "Create your account";
 
   return (
-    <section className="grid gap-10 py-10 lg:grid-cols-[1.3fr_0.9fr] lg:items-center lg:py-20">
+    <section className="grid gap-10 py-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:py-16">
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="space-y-8"
+        className="space-y-7"
       >
-        <Badge variant="glow" className="w-fit">
-          <Sparkles className="h-3.5 w-3.5" />
-          Social productivity that actually stays focused
+        <Badge variant="accent" className="w-fit normal-case tracking-normal">
+          Social focus, visible effort
         </Badge>
-        <div className="space-y-5">
-          <h1 className="max-w-3xl text-5xl font-semibold tracking-tight text-white md:text-6xl">
-            Finish the work because your pod can see the board move.
+
+        <div className="space-y-4">
+          <h1 className="pp-display max-w-3xl text-5xl font-semibold text-white sm:text-6xl">
+            PeerPod
           </h1>
-          <p className="max-w-2xl text-lg leading-8 text-slate-300">
-            PeerPod turns tasks, focus sessions, and streaks into a live pod loop.
-            No fake badge economy. Just clear effort, visible momentum, and enough
-            peer pressure to keep you honest.
+          <p className="max-w-xl text-xl leading-8 text-[var(--muted)] sm:text-2xl">
+            Finish the work because your pod can see the board move.
+          </p>
+          <p className="max-w-xl text-sm leading-6 text-[var(--muted)] sm:text-base">
+            Tasks, focus sessions, and weekly ranks in one tight loop. No fake
+            badge shop — just effort that shows.
           </p>
         </div>
 
@@ -51,62 +52,52 @@ export default function Home() {
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: 18, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.4, delay: 0.08 }}
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.06 }}
       >
-        <Card className="border-white/10 bg-slate-900/70">
+        <Card className="border-[var(--accent)]/15 bg-[radial-gradient(circle_at_top,_rgba(198,243,90,0.1),_transparent_55%)]">
           <CardContent className="space-y-5 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                Live pod board
-              </p>
-              <p className="text-lg font-semibold text-white">Exam Sprint</p>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-[var(--muted)]">
+                  Live board
+                </p>
+                <p className="pp-display mt-1 text-xl font-semibold text-white">
+                  Exam Sprint
+                </p>
+              </div>
+              <Badge variant="accent">3 focusing</Badge>
             </div>
-            <Badge variant="accent">
-              <Bolt className="h-3.5 w-3.5" />
-              3 focusing now
-            </Badge>
-          </div>
 
-          <div className="space-y-3">
-            {[
-              { rank: 1, name: "Aarav", points: 18 },
-              { rank: 2, name: "Mira", points: 15 },
-              { rank: 3, name: "You", points: 14 },
-            ].map((row, index) => (
-              <motion.div
-                key={row.rank}
-                initial={{ opacity: 0, x: 12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.24, delay: 0.08 * index }}
-                className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/5 px-4 py-3"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-400/15 text-sm font-semibold text-indigo-200">
-                    #{row.rank}
-                  </div>
-                  <div>
+            <div className="space-y-2">
+              {[
+                { rank: 1, name: "Aarav", points: 18 },
+                { rank: 2, name: "Mira", points: 15 },
+                { rank: 3, name: "You", points: 14 },
+              ].map((row, index) => (
+                <motion.div
+                  key={row.rank}
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.22, delay: 0.06 * index }}
+                  className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-black/25 px-3.5 py-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="pp-mono w-7 text-sm text-[var(--muted)]">
+                      #{row.rank}
+                    </span>
                     <p className="font-medium text-white">{row.name}</p>
-                    <p className="text-sm text-slate-400">Pod points this week</p>
                   </div>
-                </div>
-                  <div className="flex items-center gap-2">
-                    {row.rank === 1 ? <Crown className="h-4 w-4 text-amber-300" /> : null}
-                    <p className="text-lg font-semibold text-white">{row.points}</p>
-                  </div>
+                  <p className="pp-mono text-white">{row.points}</p>
                 </motion.div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4">
-            <p className="text-sm font-medium text-amber-100">Focus block active</p>
-            <p className="mt-1 text-3xl font-semibold text-white">22:14</p>
-            <p className="mt-2 text-sm text-slate-300">
-              Keep the timer alive, finish the task, and the board shifts.
-            </p>
-          </div>
+            <div className="rounded-xl border border-[var(--warning)]/20 bg-[var(--warning)]/10 p-4">
+              <p className="text-sm text-[var(--warning)]">Focus block active</p>
+              <p className="pp-mono mt-1 text-3xl text-white">22:14</p>
+            </div>
           </CardContent>
         </Card>
       </motion.div>

@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
-import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -18,50 +16,55 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { authUser, isAuthenticated, logout } = useAuth();
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(79,70,229,0.18),_transparent_35%),linear-gradient(180deg,#0b1020_0%,#0f172a_45%,#020617_100%)] text-slate-100">
-      <header className="border-b border-white/10 bg-slate-950/60 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link href={isAuthenticated ? "/pods" : "/login"} className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500/20 text-lg font-semibold text-indigo-200">
+    <div className="pp-shell text-[var(--foreground)]">
+      <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[#090b0a]/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-6">
+          <Link
+            href={isAuthenticated ? "/pods" : "/"}
+            className="flex min-w-0 items-center gap-3"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] text-sm font-bold text-[var(--accent-ink)]">
               PP
             </div>
-            <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-indigo-200/70">
+            <div className="min-w-0">
+              <p className="pp-display text-lg leading-none font-semibold tracking-tight">
                 PeerPod
               </p>
-              <p className="text-xs text-slate-400">
-                Focus with people who make it count
+              <p className="mt-1 hidden truncate text-xs text-[var(--muted)] sm:block">
+                Focus that moves the board
               </p>
             </div>
           </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             {isAuthenticated ? (
               <>
-                <nav className="hidden items-center gap-2 md:flex">
+                <nav className="hidden items-center gap-1 md:flex">
                   {navItems.map((item) => {
                     const active = pathname.startsWith(item.href);
                     return (
-                      <motion.div key={item.href} whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            buttonVariants({ variant: active ? "default" : "ghost", size: "sm" }),
-                            "rounded-full",
-                          )}
-                        >
-                          {item.label}
-                        </Link>
-                      </motion.div>
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "rounded-lg px-3 py-2 text-sm transition",
+                          active
+                            ? "bg-white/8 text-white"
+                            : "text-[var(--muted)] hover:bg-white/5 hover:text-white",
+                        )}
+                      >
+                        {item.label}
+                      </Link>
                     );
                   })}
                 </nav>
-                <div className="hidden text-right sm:block">
-                  <p className="text-sm font-medium text-white">{authUser?.username}</p>
-                  <div className="mt-1 flex justify-end">
-                    <Badge variant="glow">Ready to move the board</Badge>
-                  </div>
-                </div>
+
+                <div className="hidden h-6 w-px bg-white/10 lg:block" />
+
+                <p className="hidden max-w-[10rem] truncate text-sm text-[var(--muted)] lg:block">
+                  {authUser?.username}
+                </p>
+
                 <Button
                   type="button"
                   variant="secondary"
@@ -77,12 +80,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </>
             ) : (
               <nav className="flex items-center gap-2">
-                <Link href="/login" className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "rounded-full")}>
+                <Link
+                  href="/login"
+                  className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+                >
                   Login
                 </Link>
                 <Link
                   href="/register"
-                  className={cn(buttonVariants({ variant: "default", size: "sm" }), "rounded-full")}
+                  className={cn(buttonVariants({ variant: "default", size: "sm" }))}
                 >
                   Create account
                 </Link>
@@ -92,7 +98,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>
+      <main className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-6 sm:py-10">
+        {children}
+      </main>
     </div>
   );
 }

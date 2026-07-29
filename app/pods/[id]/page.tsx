@@ -26,7 +26,8 @@ export default function PodDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const groupId = Number(params.id);
-  const { isAuthenticated, loading, profile, getSocketToken } = useRequireAuth();
+  const { isAuthenticated, loading, profile, getSocketToken, refreshProfile } =
+    useRequireAuth();
 
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<GroupMember[]>([]);
@@ -129,23 +130,50 @@ export default function PodDetailPage() {
     setError(null);
 
     try {
-      const [groupData, memberData, leaderboardData, taskData, sessionData] =
-        await Promise.all([
+      const [groupResult, memberResult, taskResult, sessionResult] =
+        await Promise.allSettled([
           apiRequest<Group>(`/groups/${groupId}`),
           apiRequest<GroupMember[]>(`/groups/${groupId}/members`),
-          apiRequest<LeaderboardResponse>(
-            `/groups/${groupId}/leaderboard?period=week`,
-          ),
           apiRequest<Task[]>("/tasks"),
           apiRequest<FocusSession | null>("/sessions/me/active"),
         ]);
 
-      setGroup(groupData);
-      setMembers(memberData);
-      setLeaderboard(leaderboardData);
-      setTasks(taskData);
+      if (groupResult.status !== "fulfilled") {
+        throw groupResult.reason instanceof ApiError
+          ? groupResult.reason
+          : new Error("Unable to load this pod.");
+      }
+
+      setGroup(groupResult.value);
+      setMembers(memberResult.status === "fulfilled" ? memberResult.value : []);
+      setTasks(taskResult.status === "fulfilled" ? taskResult.value : []);
+
+      const sessionData =
+        sessionResult.status === "fulfilled" ? sessionResult.value : null;
       setActiveSession(sessionData?.group?.id === groupId ? sessionData : null);
+
+      try {
+        const leaderboardData = await apiRequest<LeaderboardResponse>(
+          `/groups/${groupId}/leaderboard?period=week`,
+        );
+        setLeaderboard(leaderboardData);
+      } catch {
+        setLeaderboard(null);
+        setNotice((current) =>
+          current ?? "Leaderboard is slow right now. The rest of the pod is ready.",
+        );
+      }
+
+      const softFailures = [memberResult, taskResult, sessionResult].filter(
+        (result) => result.status === "rejected",
+      ).length;
+      if (softFailures > 0) {
+        setNotice((current) =>
+          current ?? "Some secondary pod details are still loading.",
+        );
+      }
     } catch (caughtError) {
+      setGroup(null);
       setError(
         caughtError instanceof ApiError
           ? caughtError.message
@@ -189,6 +217,7 @@ export default function PodDetailPage() {
       setNewTaskTitle("");
       setNewTaskDescription("");
       await loadPodData();
+      await refreshProfile();
     } catch (caughtError) {
       setError(
         caughtError instanceof ApiError
@@ -214,6 +243,7 @@ export default function PodDetailPage() {
         body: JSON.stringify({ status }),
       });
       await loadPodData();
+      await refreshProfile();
     } catch (caughtError) {
       setError(
         caughtError instanceof ApiError
@@ -273,6 +303,7 @@ export default function PodDetailPage() {
       setLeaderboard(response.leaderboard);
       setNotice("Session completed and leaderboard refreshed.");
       await loadPodData();
+      await refreshProfile();
     } catch (caughtError) {
       setError(
         caughtError instanceof ApiError
@@ -317,7 +348,7 @@ export default function PodDetailPage() {
   }
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-8">
       <PodHeader
         groupName={group.name}
         memberCount={members.length}
@@ -340,17 +371,7 @@ export default function PodDetailPage() {
         ) : null}
       </AnimatePresence>
 
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <TaskListCard
-          tasks={groupTasks}
-          newTaskTitle={newTaskTitle}
-          newTaskDescription={newTaskDescription}
-          isMutating={isMutating}
-          onNewTaskTitleChange={setNewTaskTitle}
-          onNewTaskDescriptionChange={setNewTaskDescription}
-          onSubmit={handleCreateTask}
-          onStatusChange={updateTaskStatus}
-        />
+      <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
         <FocusTimerCard
           elapsedLabel={formatElapsed(activeSession ? elapsed : 0)}
           activeSession={Boolean(activeSession)}
@@ -361,10 +382,20 @@ export default function PodDetailPage() {
           onStart={startSession}
           onStop={stopSession}
         />
+        <LeaderboardCard leaderboard={leaderboard} profile={profile} />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_0.85fr]">
-        <LeaderboardCard leaderboard={leaderboard} profile={profile} />
+      <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
+        <TaskListCard
+          tasks={groupTasks}
+          newTaskTitle={newTaskTitle}
+          newTaskDescription={newTaskDescription}
+          isMutating={isMutating}
+          onNewTaskTitleChange={setNewTaskTitle}
+          onNewTaskDescriptionChange={setNewTaskDescription}
+          onSubmit={handleCreateTask}
+          onStatusChange={updateTaskStatus}
+        />
         <MembersCard members={members} profile={profile} />
       </div>
     </section>

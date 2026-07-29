@@ -33,6 +33,8 @@ export interface Group {
   visibility: GroupVisibility;
   maxMembers?: number | null;
   inviteCode?: string | null;
+  memberCount?: number;
+  myRole?: "ADMIN" | "MEMBER";
   createdAt?: string;
 }
 

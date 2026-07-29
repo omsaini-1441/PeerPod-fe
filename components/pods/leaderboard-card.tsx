@@ -1,9 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Crown, TrendingUp } from "lucide-react";
 import type { LeaderboardResponse, Profile } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { cn } from "@/lib/utils";
 
 interface LeaderboardCardProps {
   leaderboard: LeaderboardResponse | null;
@@ -14,65 +14,60 @@ export function LeaderboardCard({ leaderboard, profile }: LeaderboardCardProps) 
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-3">
           <div>
-            <Badge variant="glow">
-              <TrendingUp className="h-3.5 w-3.5" />
-              Weekly race
-            </Badge>
-            <CardTitle className="mt-3">Leaderboard</CardTitle>
-            <CardDescription className="mt-2">
-              The board only moves when the work is real.
-            </CardDescription>
+            <CardTitle>Leaderboard</CardTitle>
+            <CardDescription className="mt-1">This week&apos;s points</CardDescription>
           </div>
           {leaderboard?.myRank ? (
-            <Badge variant="accent">Your rank #{leaderboard.myRank}</Badge>
+            <Badge variant="accent">You #{leaderboard.myRank}</Badge>
           ) : null}
         </div>
       </CardHeader>
+
       <CardContent>
         {leaderboard?.leaderboard.length ? (
-          <div className="space-y-3">
+          <div className="space-y-2">
             <AnimatePresence initial={false}>
-              {leaderboard.leaderboard.map((entry, index) => {
+              {leaderboard.leaderboard.map((entry) => {
                 const isCurrentUser = profile?.id === entry.userId;
-                const topThree = index < 3;
 
                 return (
                   <motion.div
                     key={`${entry.userId}-${entry.rank}-${entry.points}`}
                     layout
-                    initial={{ opacity: 0, y: 12 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -12 }}
-                    transition={{ duration: 0.22 }}
-                    className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/5 px-4 py-3"
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2 }}
+                    className={cn(
+                      "flex items-center justify-between rounded-xl border px-3.5 py-3",
+                      isCurrentUser
+                        ? "border-[var(--accent)]/30 bg-[var(--accent-soft)]"
+                        : "border-[var(--border)] bg-black/20",
+                    )}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-400/15 text-sm font-semibold text-indigo-100">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="pp-mono w-8 text-sm text-[var(--muted)]">
                         #{entry.rank}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-white">{entry.username}</p>
-                          {topThree ? <Crown className="h-4 w-4 text-amber-300" /> : null}
-                        </div>
-                        <p className="text-xs text-slate-400">
-                          {isCurrentUser ? "You are here" : "Pod member"}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-white">
+                          {entry.username}
+                          {isCurrentUser ? " · you" : ""}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-lg font-semibold text-white">{entry.points}</p>
-                      <p className="text-xs text-slate-400">points</p>
-                    </div>
+                    <p className="pp-mono shrink-0 text-base font-medium text-white">
+                      {entry.points}
+                    </p>
                   </motion.div>
                 );
               })}
             </AnimatePresence>
           </div>
         ) : (
-          <EmptyState message="No points recorded yet." />
+          <EmptyState message="No points yet. Finish a focus block to open the board." />
         )}
       </CardContent>
     </Card>

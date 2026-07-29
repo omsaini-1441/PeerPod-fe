@@ -13,24 +13,45 @@ export class BackendError extends Error {
 
 type BackendRequestOptions = RequestInit & {
   token?: string | null;
+  timeoutMs?: number;
 };
+
+const DEFAULT_TIMEOUT_MS = 15_000;
 
 export async function backendFetch(
   path: string,
   options: BackendRequestOptions = {},
 ) {
-  const { token, headers, ...rest } = options;
+  const { token, headers, timeoutMs = DEFAULT_TIMEOUT_MS, signal, ...rest } =
+    options;
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
-  return fetch(`${getBackendBaseUrl()}${normalizedPath}`, {
-    ...rest,
-    headers: {
-      ...(rest.body ? { "Content-Type": "application/json" } : {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...headers,
-    },
-    cache: "no-store",
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  const onAbort = () => controller.abort();
+  signal?.addEventListener("abort", onAbort);
+
+  try {
+    return await fetch(`${getBackendBaseUrl()}${normalizedPath}`, {
+      ...rest,
+      signal: controller.signal,
+      headers: {
+        ...(rest.body ? { "Content-Type": "application/json" } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...headers,
+      },
+      cache: "no-store",
+    });
+  } catch (error) {
+    if (controller.signal.aborted && !signal?.aborted) {
+      throw new BackendError("Backend request timed out.", 504);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+    signal?.removeEventListener("abort", onAbort);
+  }
 }
 
 export async function backendJson<T>(

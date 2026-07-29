@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Bolt, Play, Square } from "lucide-react";
+import { Play, Square } from "lucide-react";
 import type { Task } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,48 +28,62 @@ export function FocusTimerCard({
   onStop,
 }: FocusTimerCardProps) {
   return (
-    <Card className="overflow-hidden border-indigo-300/15 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.18),_rgba(15,23,42,0.9)_45%)]">
+    <Card className="relative overflow-hidden border-[var(--accent)]/20 bg-[radial-gradient(circle_at_top,_rgba(198,243,90,0.12),_transparent_55%)]">
       <CardHeader>
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <Badge variant={activeSession ? "accent" : "glow"}>
-              <Bolt className="h-3.5 w-3.5" />
-              {activeSession ? "Live focus block" : "Ready to start"}
-            </Badge>
-            <CardTitle className="mt-3 text-3xl">Focus timer</CardTitle>
-            <CardDescription className="mt-2">
-              {activeSession
-                ? "Your active session is running live against the pod board."
-                : "Pick a task, start the block, and make your points count."}
-            </CardDescription>
-          </div>
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle>Focus timer</CardTitle>
+          <Badge variant={activeSession ? "accent" : "default"}>
+            {activeSession ? "Live" : "Idle"}
+          </Badge>
         </div>
+        <CardDescription>
+          {activeSession
+            ? "Your block is live. Keep this screen open and finish the work you claimed."
+            : "Choose the task you want to ship, then start a timed focus block for this pod."}
+        </CardDescription>
       </CardHeader>
+
       <CardContent className="space-y-5">
         <motion.div
           key={activeSession ? "timer-active" : "timer-idle"}
-          initial={{ opacity: 0.8, scale: 0.98 }}
-          animate={{
-            opacity: 1,
-            scale: 1,
-            boxShadow: activeSession
-              ? "0 0 0 1px rgba(52,211,153,0.18), 0 0 50px rgba(99,102,241,0.18)"
-              : "0 0 0 1px rgba(255,255,255,0.06)",
-          }}
-          transition={{ duration: 0.3 }}
-          className="rounded-[1.75rem] border border-white/8 bg-black/20 p-5"
+          initial={{ opacity: 0.85, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-[var(--border)] bg-black/30 px-5 py-6"
         >
-          <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Elapsed</p>
-          <motion.p
-            animate={activeSession ? { scale: [1, 1.012, 1] } : { scale: 1 }}
-            transition={{ duration: 1.4, repeat: activeSession ? Infinity : 0 }}
-            className="mt-3 text-5xl font-semibold tracking-tight text-white md:text-6xl"
-          >
+          <p className="text-[11px] uppercase tracking-[0.28em] text-[var(--muted)]">
+            Elapsed
+          </p>
+          <p className="pp-mono mt-3 text-5xl font-medium tracking-tight text-white sm:text-6xl">
             {elapsedLabel}
-          </motion.p>
+          </p>
         </motion.div>
 
-        <Select value={selectedTaskId} onChange={(event) => onSelectedTaskIdChange(event.target.value)}>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-[var(--border)] bg-black/20 p-3">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">
+              1. Pick task
+            </p>
+            <p className="mt-1 text-sm text-white">Tie the session to the work that matters.</p>
+          </div>
+          <div className="rounded-xl border border-[var(--border)] bg-black/20 p-3">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">
+              2. Focus
+            </p>
+            <p className="mt-1 text-sm text-white">Stay in the block and build real momentum.</p>
+          </div>
+          <div className="rounded-xl border border-[var(--border)] bg-black/20 p-3">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">
+              3. Move board
+            </p>
+            <p className="mt-1 text-sm text-white">Completed blocks feed points and streaks.</p>
+          </div>
+        </div>
+
+        <Select
+          value={selectedTaskId}
+          onChange={(event) => onSelectedTaskIdChange(event.target.value)}
+          disabled={activeSession}
+        >
           <option value="">No linked task</option>
           {tasks.map((task) => (
             <option key={task.id} value={task.id}>
@@ -79,14 +93,19 @@ export function FocusTimerCard({
         </Select>
 
         {activeSession ? (
-          <Button variant="danger" className="w-full" onClick={onStop} disabled={isMutating}>
+          <Button
+            variant="danger"
+            className="w-full"
+            onClick={onStop}
+            disabled={isMutating}
+          >
             <Square className="h-4 w-4" />
-            Stop focus session
+            Stop session
           </Button>
         ) : (
           <Button className="w-full" onClick={onStart} disabled={isMutating}>
             <Play className="h-4 w-4" />
-            Start focus session
+            Start session
           </Button>
         )}
       </CardContent>
