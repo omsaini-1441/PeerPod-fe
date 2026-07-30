@@ -93,6 +93,25 @@ export interface StopSessionResponse {
   session: FocusSession;
   pointEvent: PointEvent | null;
   leaderboard: LeaderboardResponse;
+  dayCapReached?: boolean;
+  sessionPointsRemainingToday?: number;
+  pointsEarned?: number;
+  pointsAwarded?: number;
+}
+
+export interface PodFocusingMember {
+  sessionId: number;
+  userId: number;
+  username: string;
+  startedAt: string;
+}
+
+export interface PodPresenceResponse {
+  groupId: number;
+  focusing: PodFocusingMember[];
+  todayMinutes: number;
+  sessionPointsRemainingToday: number;
+  dayCapReached: boolean;
 }
 
 export interface FocusHeatmapCell {

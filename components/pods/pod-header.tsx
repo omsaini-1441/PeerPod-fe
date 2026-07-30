@@ -7,6 +7,7 @@ interface PodHeaderProps {
   groupName: string;
   memberCount: number;
   currentStreak: number;
+  focusingCount?: number;
   notice: string | null;
   onLeave: () => void;
   isMutating: boolean;
@@ -16,6 +17,7 @@ export function PodHeader({
   groupName,
   memberCount,
   currentStreak,
+  focusingCount = 0,
   notice,
   onLeave,
   isMutating,
@@ -34,6 +36,9 @@ export function PodHeader({
             <Users className="h-3.5 w-3.5" />
             {memberCount} members
           </span>
+          {focusingCount > 0 ? (
+            <Badge variant="glow">{focusingCount} focusing</Badge>
+          ) : null}
           <span className="inline-flex items-center gap-1.5 text-sm text-[var(--muted)]">
             <Flame className="h-3.5 w-3.5 text-[var(--warning)]" />
             {currentStreak}d streak
@@ -46,7 +51,7 @@ export function PodHeader({
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--muted)] sm:text-base">
             {notice ??
-              "Start a focus block, finish tasks, and watch the weekly board move."}
+              "Start a focus block, finish tasks, and watch today's board move."}
           </p>
         </div>
       </div>

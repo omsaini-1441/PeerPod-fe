@@ -15,6 +15,7 @@ interface FocusTimerCardProps {
   selectedTaskId: string;
   tasks: Task[];
   isMutating: boolean;
+  dayCapReached?: boolean;
   onSelectedTaskIdChange: (value: string) => void;
   onStart: () => void;
   onStop: () => void;
@@ -27,6 +28,7 @@ export function FocusTimerCard({
   selectedTaskId,
   tasks,
   isMutating,
+  dayCapReached = false,
   onSelectedTaskIdChange,
   onStart,
   onStop,
@@ -45,11 +47,13 @@ export function FocusTimerCard({
           </Badge>
         </div>
         <CardDescription>
-          {activeSession
-            ? selectedTask
-              ? `Locked on “${selectedTask.title}”. Stay in the block.`
-              : "Your block is live. Enter zen mode for a calmer full-screen timer."
-            : "Pick an open task, then start a timed focus block for this pod."}
+          {dayCapReached
+            ? "Day board's full — keep going for the pod vibe and your streak."
+            : activeSession
+              ? selectedTask
+                ? `Locked on “${selectedTask.title}”. Stay in the block.`
+                : "Your block is live. Enter zen mode for a calmer full-screen timer."
+              : "Pick an open task, then start a timed focus block for this pod."}
         </CardDescription>
       </CardHeader>
 
