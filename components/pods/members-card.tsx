@@ -19,30 +19,34 @@ export function MembersCard({ members, profile }: MembersCardProps) {
       </CardHeader>
 
       <CardContent className="space-y-2">
-        {members.map((member) => (
-          <div
-            key={member.id}
-            className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-black/20 px-3.5 py-3"
-          >
-            <p className="truncate font-medium text-white">{member.user.username}</p>
-            <Badge>{member.role}</Badge>
-          </div>
-        ))}
-
-        <div className="mt-3 rounded-xl border border-[var(--warning)]/20 bg-[var(--warning)]/10 p-4">
-          <div className="flex items-center gap-2 text-[var(--warning)]">
-            <Flame className="h-4 w-4" />
-            <p className="text-sm">Your streak</p>
-          </div>
-          <p className="pp-display mt-2 text-3xl font-semibold text-white">
-            {profile?.currentStreak ?? 0}
-            <span className="ml-1 text-base font-normal text-[var(--muted)]">days</span>
-          </p>
+        <div className="space-y-2">
+          {members.map((member) => (
+            <div
+              key={member.id}
+              className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-black/20 px-3.5 py-3"
+            >
+              <p className="truncate font-medium text-white">{member.user.username}</p>
+              <Badge>{member.role}</Badge>
+            </div>
+          ))}
         </div>
 
-        <Button asChild variant="secondary" className="mt-2 w-full">
-          <Link href="/profile">Open profile</Link>
-        </Button>
+        <div className="mt-auto space-y-2 pt-3">
+          <div className="rounded-xl border border-[var(--warning)]/20 bg-[var(--warning)]/10 p-4">
+            <div className="flex items-center gap-2 text-[var(--warning)]">
+              <Flame className="h-4 w-4" />
+              <p className="text-sm">Your streak</p>
+            </div>
+            <p className="pp-display mt-2 text-3xl font-semibold text-white">
+              {profile?.currentStreak ?? 0}
+              <span className="ml-1 text-base font-normal text-[var(--muted)]">days</span>
+            </p>
+          </div>
+
+          <Button asChild variant="secondary" className="w-full">
+            <Link href="/profile">Open profile</Link>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

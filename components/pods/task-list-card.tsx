@@ -1,4 +1,7 @@
+"use client";
+
 import { AnimatePresence, motion } from "framer-motion";
+import { Check } from "lucide-react";
 import type { Task } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -92,20 +95,56 @@ export function TaskListCard({
                     </Badge>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {(["OPEN", "IN_PROGRESS", "DONE"] as const).map((status) => (
-                      <Button
-                        key={status}
-                        type="button"
-                        size="sm"
-                        variant={task.status === status ? "default" : "secondary"}
-                        disabled={task.status === status || isMutating}
-                        onClick={() => onStatusChange(task.id, status)}
-                      >
-                        {statusLabel[status]}
-                      </Button>
-                    ))}
-                  </div>
+                  {task.status === "DONE" ? (
+                    <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-[var(--muted)]">
+                      <Check className="h-3.5 w-3.5 text-[var(--accent)]" />
+                      Completed
+                    </p>
+                  ) : (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {task.status === "OPEN" ? (
+                        <>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            disabled={isMutating}
+                            onClick={() => onStatusChange(task.id, "IN_PROGRESS")}
+                          >
+                            Start
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={isMutating}
+                            onClick={() => onStatusChange(task.id, "DONE")}
+                          >
+                            Complete
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={isMutating}
+                            onClick={() => onStatusChange(task.id, "DONE")}
+                          >
+                            Complete
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            disabled={isMutating}
+                            onClick={() => onStatusChange(task.id, "OPEN")}
+                          >
+                            Move back to open
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </motion.div>
               ))}
             </AnimatePresence>

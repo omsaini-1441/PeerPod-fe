@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { JetBrains_Mono, Outfit, Syne } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { ToastProvider } from "@/components/providers/toast-provider";
 import { AppShell } from "@/components/layout/app-shell";
 
 const outfit = Outfit({
@@ -32,12 +33,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${outfit.variable} ${syne.variable} ${jetbrains.variable} h-full antialiased`}
+      className={`dark ${outfit.variable} ${syne.variable} ${jetbrains.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
-        <AuthProvider>
-          <AppShell>{children}</AppShell>
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <AppShell>{children}</AppShell>
+          </AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );

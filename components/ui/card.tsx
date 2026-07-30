@@ -8,7 +8,7 @@ function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-[var(--border)] bg-[var(--surface)] backdrop-blur-xl",
+        "flex h-full flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)] backdrop-blur-xl",
         className,
       )}
       {...props}
@@ -46,7 +46,12 @@ function CardContent({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("px-5 pb-5 sm:px-6 sm:pb-6", className)} {...props} />;
+  return (
+    <div
+      className={cn("flex flex-1 flex-col px-5 pb-5 sm:px-6 sm:pb-6", className)}
+      {...props}
+    />
+  );
 }
 
 function CardFooter({

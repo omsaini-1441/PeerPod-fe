@@ -1,12 +1,13 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { useToast } from "@/components/providers/toast-provider";
 import { ApiError, apiRequest } from "@/lib/api";
 import { createPeerPodSocket } from "@/lib/socket";
 import type {
+  FocusHeatmapResponse,
   FocusSession,
   Group,
   GroupMember,
@@ -14,18 +15,24 @@ import type {
   StopSessionResponse,
   Task,
 } from "@/lib/types";
-import { FocusTimerCard } from "@/components/pods/focus-timer-card";
+import {
+  FocusTimerCard,
+  FocusZenMode,
+} from "@/components/pods/focus-timer-card";
+import { FocusHeatmapCard } from "@/components/pods/focus-heatmap-card";
 import { LeaderboardCard } from "@/components/pods/leaderboard-card";
 import { MembersCard } from "@/components/pods/members-card";
 import { PodHeader } from "@/components/pods/pod-header";
 import { TaskListCard } from "@/components/pods/task-list-card";
-import { Alert } from "@/components/ui/alert";
 import { PanelMessage } from "@/components/ui/panel-message";
 
 export default function PodDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const groupId = Number(params.id);
+  const toast = useToast();
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
   const { isAuthenticated, loading, profile, getSocketToken, refreshProfile } =
     useRequireAuth();
 
@@ -33,21 +40,52 @@ export default function PodDetailPage() {
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardResponse | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [heatmap, setHeatmap] = useState<FocusHeatmapResponse | null>(null);
   const [activeSession, setActiveSession] = useState<FocusSession | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string>("");
+  const [zenModeOpen, setZenModeOpen] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loadingPage, setLoadingPage] = useState(true);
-  const [isMutating, setIsMutating] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [mutatingKey, setMutatingKey] = useState<string | null>(null);
 
   const elapsed = useElapsedTimer(activeSession?.startedAt ?? null);
+  const isMutating = mutatingKey !== null;
 
   const groupTasks = useMemo(
     () => tasks.filter((task) => task.group?.id === groupId),
     [tasks, groupId],
   );
+
+  const selectedTask = useMemo(
+    () => groupTasks.find((task) => String(task.id) === selectedTaskId) ?? null,
+    [groupTasks, selectedTaskId],
+  );
+
+  useEffect(() => {
+    if (selectedTask?.status === "DONE") {
+      setSelectedTaskId("");
+    }
+  }, [selectedTask]);
+
+  useEffect(() => {
+    if (!activeSession) {
+      setZenModeOpen(false);
+    }
+  }, [activeSession]);
+
+  const refreshHeatmap = useCallback(async () => {
+    try {
+      const data = await apiRequest<FocusHeatmapResponse>(
+        "/sessions/me/heatmap?days=84",
+      );
+      setHeatmap(data);
+    } catch {
+      // Non-blocking secondary surface.
+    }
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated || !groupId) {
@@ -99,6 +137,7 @@ export default function PodDetailPage() {
           if (payload.groupId === groupId) {
             if (payload.userId === profile?.id) {
               setActiveSession(null);
+              void refreshHeatmap();
             }
             setNotice(
               `A focus block ended with ${payload.pointsAwarded} points awarded.`,
@@ -107,7 +146,9 @@ export default function PodDetailPage() {
         });
       } catch {
         if (!cancelled) {
-          setNotice("Live updates unavailable. Refresh if the board looks stale.");
+          toastRef.current.info(
+            "Live updates unavailable. Refresh if the board looks stale.",
+          );
         }
       }
     })();
@@ -119,7 +160,14 @@ export default function PodDetailPage() {
         socket.disconnect();
       }
     };
-  }, [isAuthenticated, groupId, profile?.id, group?.name, getSocketToken]);
+  }, [
+    isAuthenticated,
+    groupId,
+    profile?.id,
+    group?.name,
+    getSocketToken,
+    refreshHeatmap,
+  ]);
 
   const loadPodData = useCallback(async () => {
     if (!isAuthenticated) {
@@ -127,15 +175,16 @@ export default function PodDetailPage() {
     }
 
     setLoadingPage(true);
-    setError(null);
+    setLoadError(null);
 
     try {
-      const [groupResult, memberResult, taskResult, sessionResult] =
+      const [groupResult, memberResult, taskResult, sessionResult, heatmapResult] =
         await Promise.allSettled([
           apiRequest<Group>(`/groups/${groupId}`),
           apiRequest<GroupMember[]>(`/groups/${groupId}/members`),
           apiRequest<Task[]>("/tasks"),
           apiRequest<FocusSession | null>("/sessions/me/active"),
+          apiRequest<FocusHeatmapResponse>("/sessions/me/heatmap?days=84"),
         ]);
 
       if (groupResult.status !== "fulfilled") {
@@ -147,6 +196,7 @@ export default function PodDetailPage() {
       setGroup(groupResult.value);
       setMembers(memberResult.status === "fulfilled" ? memberResult.value : []);
       setTasks(taskResult.status === "fulfilled" ? taskResult.value : []);
+      setHeatmap(heatmapResult.status === "fulfilled" ? heatmapResult.value : null);
 
       const sessionData =
         sessionResult.status === "fulfilled" ? sessionResult.value : null;
@@ -159,22 +209,13 @@ export default function PodDetailPage() {
         setLeaderboard(leaderboardData);
       } catch {
         setLeaderboard(null);
-        setNotice((current) =>
-          current ?? "Leaderboard is slow right now. The rest of the pod is ready.",
-        );
-      }
-
-      const softFailures = [memberResult, taskResult, sessionResult].filter(
-        (result) => result.status === "rejected",
-      ).length;
-      if (softFailures > 0) {
-        setNotice((current) =>
-          current ?? "Some secondary pod details are still loading.",
+        toastRef.current.info(
+          "Leaderboard is slow right now. The rest of the pod is ready.",
         );
       }
     } catch (caughtError) {
       setGroup(null);
-      setError(
+      setLoadError(
         caughtError instanceof ApiError
           ? caughtError.message
           : "Unable to load this pod.",
@@ -198,15 +239,14 @@ export default function PodDetailPage() {
 
   async function handleCreateTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isAuthenticated) {
+    if (!isAuthenticated || mutatingKey) {
       return;
     }
 
-    setIsMutating(true);
-    setError(null);
+    setMutatingKey("create-task");
 
     try {
-      await apiRequest<Task>("/tasks", {
+      const created = await apiRequest<Task>("/tasks", {
         method: "POST",
         body: JSON.stringify({
           title: newTaskTitle,
@@ -214,54 +254,68 @@ export default function PodDetailPage() {
           groupId,
         }),
       });
+      setTasks((current) => [created, ...current]);
       setNewTaskTitle("");
       setNewTaskDescription("");
-      await loadPodData();
-      await refreshProfile();
+      toast.success("Task added.");
     } catch (caughtError) {
-      setError(
+      toast.error(
         caughtError instanceof ApiError
           ? caughtError.message
           : "Unable to create task.",
       );
     } finally {
-      setIsMutating(false);
+      setMutatingKey(null);
     }
   }
 
   async function updateTaskStatus(taskId: number, status: Task["status"]) {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || mutatingKey) {
       return;
     }
 
-    setIsMutating(true);
-    setError(null);
+    setMutatingKey(`task-${taskId}`);
+    const previous = tasks;
+
+    setTasks((current) =>
+      current.map((task) => (task.id === taskId ? { ...task, status } : task)),
+    );
 
     try {
-      await apiRequest(`/tasks/${taskId}`, {
+      const updated = await apiRequest<Task>(`/tasks/${taskId}`, {
         method: "PATCH",
         body: JSON.stringify({ status }),
       });
-      await loadPodData();
-      await refreshProfile();
+      setTasks((current) =>
+        current.map((task) => (task.id === taskId ? updated : task)),
+      );
+      if (status === "DONE") {
+        toast.success("Task completed.");
+      }
     } catch (caughtError) {
-      setError(
+      setTasks(previous);
+      toast.error(
         caughtError instanceof ApiError
           ? caughtError.message
           : "Unable to update task.",
       );
     } finally {
-      setIsMutating(false);
+      setMutatingKey(null);
     }
   }
 
   async function startSession() {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || mutatingKey) {
       return;
     }
 
-    setIsMutating(true);
-    setError(null);
+    if (selectedTask?.status === "DONE") {
+      toast.error("Completed tasks can't start a focus block. Pick an open task.");
+      setSelectedTaskId("");
+      return;
+    }
+
+    setMutatingKey("session-start");
 
     try {
       const session = await apiRequest<FocusSession>("/sessions/start", {
@@ -272,25 +326,25 @@ export default function PodDetailPage() {
         }),
       });
       setActiveSession(session);
-      setNotice("Focus block started. Keep the board moving.");
+      setZenModeOpen(true);
+      setNotice("Focus block started. Stay in the work.");
     } catch (caughtError) {
-      setError(
+      toast.error(
         caughtError instanceof ApiError
           ? caughtError.message
           : "Unable to start session.",
       );
     } finally {
-      setIsMutating(false);
+      setMutatingKey(null);
     }
   }
 
   async function stopSession() {
-    if (!isAuthenticated || !activeSession) {
+    if (!isAuthenticated || !activeSession || mutatingKey) {
       return;
     }
 
-    setIsMutating(true);
-    setError(null);
+    setMutatingKey("session-stop");
 
     try {
       const response = await apiRequest<StopSessionResponse>("/sessions/stop", {
@@ -300,28 +354,33 @@ export default function PodDetailPage() {
         }),
       });
       setActiveSession(null);
+      setZenModeOpen(false);
       setLeaderboard(response.leaderboard);
-      setNotice("Session completed and leaderboard refreshed.");
-      await loadPodData();
-      await refreshProfile();
+      setNotice("Session completed.");
+      toast.success(
+        response.pointEvent
+          ? `+${response.pointEvent.points} pts — board updated.`
+          : "Focus block ended.",
+      );
+      void refreshHeatmap();
+      void refreshProfile();
     } catch (caughtError) {
-      setError(
+      toast.error(
         caughtError instanceof ApiError
           ? caughtError.message
           : "Unable to stop session.",
       );
     } finally {
-      setIsMutating(false);
+      setMutatingKey(null);
     }
   }
 
   async function leavePod() {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || mutatingKey) {
       return;
     }
 
-    setIsMutating(true);
-    setError(null);
+    setMutatingKey("leave");
 
     try {
       await apiRequest(`/groups/${groupId}/leave`, {
@@ -329,13 +388,12 @@ export default function PodDetailPage() {
       });
       router.push("/pods");
     } catch (caughtError) {
-      setError(
+      toast.error(
         caughtError instanceof ApiError
           ? caughtError.message
           : "Unable to leave pod.",
       );
-    } finally {
-      setIsMutating(false);
+      setMutatingKey(null);
     }
   }
 
@@ -344,7 +402,7 @@ export default function PodDetailPage() {
   }
 
   if (!group) {
-    return <PanelMessage message={error ?? "Pod not found."} />;
+    return <PanelMessage message={loadError ?? "Pod not found."} />;
   }
 
   return (
@@ -358,46 +416,55 @@ export default function PodDetailPage() {
         isMutating={isMutating}
       />
 
-      <AnimatePresence initial={false}>
-        {error ? (
-          <motion.div
-            key="pod-error"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-          >
-            <Alert variant="danger">{error}</Alert>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      <div className="flex flex-col gap-5">
+        <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-12">
+          <div className="min-h-0 lg:col-span-5">
+            <FocusTimerCard
+              elapsedLabel={formatElapsed(activeSession ? elapsed : 0)}
+              activeSession={Boolean(activeSession)}
+              selectedTaskId={selectedTaskId}
+              tasks={groupTasks}
+              isMutating={isMutating}
+              onSelectedTaskIdChange={setSelectedTaskId}
+              onStart={startSession}
+              onStop={stopSession}
+              onEnterZen={() => setZenModeOpen(true)}
+            />
+          </div>
+          <div className="min-h-0 lg:col-span-7">
+            <LeaderboardCard leaderboard={leaderboard} profile={profile} />
+          </div>
+        </div>
 
-      <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-        <FocusTimerCard
-          elapsedLabel={formatElapsed(activeSession ? elapsed : 0)}
-          activeSession={Boolean(activeSession)}
-          selectedTaskId={selectedTaskId}
-          tasks={groupTasks}
-          isMutating={isMutating}
-          onSelectedTaskIdChange={setSelectedTaskId}
-          onStart={startSession}
-          onStop={stopSession}
-        />
-        <LeaderboardCard leaderboard={leaderboard} profile={profile} />
+        <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-12">
+          <div className="min-h-0 lg:col-span-8">
+            <TaskListCard
+              tasks={groupTasks}
+              newTaskTitle={newTaskTitle}
+              newTaskDescription={newTaskDescription}
+              isMutating={isMutating}
+              onNewTaskTitleChange={setNewTaskTitle}
+              onNewTaskDescriptionChange={setNewTaskDescription}
+              onSubmit={handleCreateTask}
+              onStatusChange={updateTaskStatus}
+            />
+          </div>
+          <div className="min-h-0 lg:col-span-4">
+            <MembersCard members={members} profile={profile} />
+          </div>
+        </div>
+
+        <FocusHeatmapCard heatmap={heatmap} />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
-        <TaskListCard
-          tasks={groupTasks}
-          newTaskTitle={newTaskTitle}
-          newTaskDescription={newTaskDescription}
-          isMutating={isMutating}
-          onNewTaskTitleChange={setNewTaskTitle}
-          onNewTaskDescriptionChange={setNewTaskDescription}
-          onSubmit={handleCreateTask}
-          onStatusChange={updateTaskStatus}
-        />
-        <MembersCard members={members} profile={profile} />
-      </div>
+      <FocusZenMode
+        open={zenModeOpen && Boolean(activeSession)}
+        elapsedLabel={formatElapsed(activeSession ? elapsed : 0)}
+        taskTitle={selectedTask?.title ?? activeSession?.task?.title ?? null}
+        isMutating={isMutating}
+        onClose={() => setZenModeOpen(false)}
+        onStop={stopSession}
+      />
     </section>
   );
 }
@@ -407,6 +474,7 @@ function useElapsedTimer(startedAt: string | null) {
 
   useEffect(() => {
     if (!startedAt) {
+      setElapsed(0);
       return;
     }
 

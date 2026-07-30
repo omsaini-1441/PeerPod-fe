@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 :root {
   --background: #090b0a;
   --foreground: #eef2ea;
@@ -10,10 +12,42 @@
   --muted: #8f998f;
   --accent: #c6f35a;
   --accent-soft: rgba(198, 243, 90, 0.12);
-  --accent-ink: #13200a;
+  --accent-ink: #0c1406;
   --danger: #ff7b72;
   --warning: #f0b429;
   --glow: rgba(198, 243, 90, 0.18);
+  --leader: #f5d76e;
+  --leader-soft: rgba(245, 215, 110, 0.14);
+  --chase: #ff9f43;
+  --chase-soft: rgba(255, 159, 67, 0.14);
+
+  /* Bklit charts — PeerPod dark theme */
+  --chart-1: #c6f35a;
+  --chart-2: #f5d76e;
+  --chart-3: #8f998f;
+  --chart-4: #ff9f43;
+  --chart-5: #5eead4;
+  --chart-background: transparent;
+  --chart-foreground: #eef2ea;
+  --chart-foreground-muted: #8f998f;
+  --chart-line-primary: var(--chart-1);
+  --chart-line-secondary: var(--chart-2);
+  --chart-crosshair: rgba(198, 243, 90, 0.45);
+  --chart-grid: rgba(238, 242, 234, 0.08);
+  --chart-brush-border: var(--chart-grid);
+  --chart-tooltip-background: rgba(12, 16, 13, 0.92);
+  --chart-tooltip-foreground: #eef2ea;
+  --chart-tooltip-muted: #8f998f;
+  --chart-marker-background: #121614;
+  --chart-marker-border: rgba(238, 242, 234, 0.16);
+  --chart-marker-foreground: #eef2ea;
+  --chart-label: #8f998f;
+  --chart-scale-01: rgba(198, 243, 90, 0.08);
+  --chart-scale-02: rgba(198, 243, 90, 0.16);
+  --chart-scale-03: rgba(198, 243, 90, 0.28);
+  --chart-scale-04: rgba(198, 243, 90, 0.45);
+  --chart-scale-05: #c6f35a;
+  --chart-scale-pattern-color: rgba(9, 11, 10, 0.4);
 }
 
 @theme inline {
@@ -25,9 +59,34 @@
   --color-accent-ink: var(--accent-ink);
   --color-danger: var(--danger);
   --color-warning: var(--warning);
+  --color-leader: var(--leader);
+  --color-chase: var(--chase);
   --font-sans: var(--font-outfit);
   --font-display: var(--font-syne);
   --font-mono: var(--font-jetbrains);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-background: var(--chart-background);
+  --color-chart-foreground: var(--chart-foreground);
+  --color-chart-foreground-muted: var(--chart-foreground-muted);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-crosshair: var(--chart-crosshair);
+  --color-chart-label: var(--chart-label);
+  --color-chart-tooltip-background: var(--chart-tooltip-background);
+  --color-chart-tooltip-foreground: var(--chart-tooltip-foreground);
+  --color-chart-tooltip-muted: var(--chart-tooltip-muted);
+  --color-chart-marker-background: var(--chart-marker-background);
+  --color-chart-marker-border: var(--chart-marker-border);
+  --color-chart-marker-foreground: var(--chart-marker-foreground);
+  --color-chart-scale-01: var(--chart-scale-01);
+  --color-chart-scale-02: var(--chart-scale-02);
+  --color-chart-scale-03: var(--chart-scale-03);
+  --color-chart-scale-04: var(--chart-scale-04);
+  --color-chart-scale-05: var(--chart-scale-05);
+  --color-chart-scale-pattern-color: var(--chart-scale-pattern-color);
 }
 
 * {
@@ -62,7 +121,7 @@ textarea {
 
 ::selection {
   background: rgba(198, 243, 90, 0.28);
-  color: #13200a;
+  color: var(--accent-ink);
 }
 
 .pp-shell {

@@ -4,19 +4,19 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#090b0a]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#090b0a]",
   {
     variants: {
       variant: {
         default:
-          "bg-[var(--accent)] text-[#0f1408] hover:brightness-110",
+          "bg-[var(--accent)] !text-[#0c1406] hover:bg-[#d4f87a]",
         secondary:
           "border border-[var(--border-strong)] bg-white/[0.03] text-[var(--foreground)] hover:bg-white/[0.07]",
         accent:
-          "bg-[var(--accent)] text-[#0f1408] hover:brightness-110",
+          "bg-[var(--accent)] !text-[#0c1406] hover:bg-[#d4f87a]",
         danger:
           "bg-[#3a1716] text-[#ffb4ae] border border-[#ff7b72]/30 hover:bg-[#4a1d1c]",
-        ghost: "text-[var(--muted)] hover:bg-white/5 hover:text-white",
+        ghost: "font-medium text-[var(--muted)] hover:bg-white/5 hover:text-white",
       },
       size: {
         default: "h-10 px-4 py-2",

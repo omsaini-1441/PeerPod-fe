@@ -95,6 +95,21 @@ export interface StopSessionResponse {
   leaderboard: LeaderboardResponse;
 }
 
+export interface FocusHeatmapCell {
+  day: string;
+  totalMinutes: number;
+  sessionCount: number;
+  hours: number;
+}
+
+export interface FocusHeatmapResponse {
+  from: string;
+  to: string;
+  days: number;
+  totalMinutes: number;
+  cells: FocusHeatmapCell[];
+}
+
 export interface SocketSessionStartedPayload {
   sessionId: number;
   userId: number;
