@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Maximize2, Minimize2, Play, CircleStop, X } from "lucide-react";
+import { Maximize2, Minimize2, Play, CircleStop } from "lucide-react";
 import type { Task } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -267,15 +267,6 @@ export function FocusZenMode({
               }}
             />
           </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute right-5 top-5 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-white/[0.03] text-[var(--muted)] transition hover:bg-white/[0.07] hover:text-white"
-            aria-label="Exit zen mode"
-          >
-            <X className="h-4 w-4" />
-          </button>
 
           <motion.div
             className="relative z-10 flex w-full max-w-2xl flex-col items-center text-center"
