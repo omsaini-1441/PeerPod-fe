@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Maximize2, Play, Square, X } from "lucide-react";
+import { Maximize2, Minimize2, Play, CircleStop, X } from "lucide-react";
 import type { Task } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -100,7 +100,7 @@ export function FocusTimerCard({
               onClick={onStop}
               disabled={isMutating}
             >
-              <Square className="h-4 w-4" />
+              <CircleStop className="h-4 w-4" />
               Stop session
             </Button>
           </div>
@@ -317,14 +317,24 @@ export function FocusZenMode({
               </AnimatePresence>
             </div>
 
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-              <Button variant="secondary" onClick={onClose}>
+            <div className="mt-12 flex items-center justify-center gap-8">
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex items-center gap-2 text-sm text-[var(--muted)] transition hover:text-white"
+              >
+                <Minimize2 className="h-4 w-4" />
                 Minimize
-              </Button>
-              <Button variant="danger" onClick={onStop} disabled={isMutating}>
-                <Square className="h-4 w-4" />
-                End focus block
-              </Button>
+              </button>
+              <button
+                type="button"
+                onClick={onStop}
+                disabled={isMutating}
+                className="inline-flex items-center gap-2 text-sm text-[#ff9f98]/80 transition hover:text-[#ffb4ae] disabled:opacity-50"
+              >
+                <CircleStop className="h-4 w-4" />
+                End focus
+              </button>
             </div>
           </motion.div>
         </motion.div>

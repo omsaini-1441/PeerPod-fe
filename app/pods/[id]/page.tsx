@@ -449,12 +449,11 @@ export default function PodDetailPage() {
               onStatusChange={updateTaskStatus}
             />
           </div>
-          <div className="min-h-0 lg:col-span-4">
+          <div className="flex min-h-0 flex-col gap-5 lg:col-span-4">
             <MembersCard members={members} profile={profile} />
+            <FocusHeatmapCard heatmap={heatmap} />
           </div>
         </div>
-
-        <FocusHeatmapCard heatmap={heatmap} />
       </div>
 
       <FocusZenMode
