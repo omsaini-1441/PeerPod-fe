@@ -1,10 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Radio } from "lucide-react";
 import type { PodFocusingMember } from "@/lib/types";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Score } from "@/components/ui/score";
 
 interface FocusingNowCardProps {
   focusing: PodFocusingMember[];
@@ -21,54 +19,64 @@ export function FocusingNowCard({
   const pulseLabel = formatPodPulse(todayMinutes);
 
   return (
-    <Card className="border-[var(--accent)]/15 bg-[radial-gradient(circle_at_top_left,_rgba(198,243,90,0.08),_transparent_50%)]">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <CardTitle className="text-lg">Focusing now</CardTitle>
-            <CardDescription className="mt-1">
-              {count
-                ? `${count} in a block — the pod is live.`
-                : "Nobody on the clock yet. Be the spark."}
-            </CardDescription>
+    <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-strong)] p-1">
+      <div className="rounded-[calc(1.75rem-0.25rem)] border border-[var(--border)] bg-[var(--surface-inset)] px-4 py-4 sm:px-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="pp-display text-lg font-semibold text-white">
+              Focusing now
+            </p>
+            <p className="mt-0.5 text-sm text-[var(--muted)]">{pulseLabel}</p>
           </div>
-          <Badge variant={count ? "accent" : "default"}>
-            <Radio className="h-3 w-3" />
-            {count ? `${count} live` : "Quiet"}
-          </Badge>
+          <div
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${
+              count
+                ? "border-[var(--accent)]/25 bg-[var(--accent-soft)] text-[#d7f98a]"
+                : "border-[var(--border)] bg-white/[0.03] text-[var(--muted)]"
+            }`}
+          >
+            {count ? (
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)] opacity-50" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
+                </span>
+                <Score value={count} />
+                <span>live</span>
+              </>
+            ) : (
+              "Quiet"
+            )}
+          </div>
         </div>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <p className="text-sm text-[var(--muted)]">{pulseLabel}</p>
 
         <AnimatePresence initial={false} mode="popLayout">
           {count ? (
-            <ul className="space-y-2">
+            <ul className="mt-4 flex gap-2 overflow-x-auto pb-1">
               {focusing.map((member) => {
                 const isYou = member.userId === currentUserId;
+                const initial = member.username.slice(0, 1).toUpperCase();
                 return (
                   <motion.li
                     key={member.sessionId}
                     layout
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-black/25 px-3.5 py-2.5"
+                    initial={{ opacity: 0, scale: 0.92 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.92 }}
+                    className="flex min-w-[9.5rem] shrink-0 items-center gap-2.5 rounded-2xl border border-[var(--border)] bg-black/25 px-3 py-2.5"
                   >
-                    <div className="flex min-w-0 items-center gap-2.5">
-                      <span className="relative flex h-2 w-2 shrink-0">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)] opacity-60" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
-                      </span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-sm font-semibold text-[var(--accent)]">
+                      {initial}
+                    </span>
+                    <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-white">
                         {member.username}
                         {isYou ? " · you" : ""}
                       </p>
+                      <p className="pp-mono text-[11px] text-[var(--muted)]">
+                        since {formatClock(member.startedAt)}
+                      </p>
                     </div>
-                    <p className="pp-mono shrink-0 text-xs text-[var(--muted)]">
-                      since {formatClock(member.startedAt)}
-                    </p>
                   </motion.li>
                 );
               })}
@@ -78,14 +86,14 @@ export function FocusingNowCard({
               key="empty"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="rounded-xl border border-dashed border-[var(--border)] px-3.5 py-4 text-sm text-[var(--muted)]"
+              className="mt-4 text-sm text-[var(--muted)]"
             >
               Start a focus block and your name shows up here for the pod.
             </motion.p>
           )}
         </AnimatePresence>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

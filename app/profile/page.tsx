@@ -3,7 +3,18 @@
 import { useEffect, useState } from "react";
 import { ApiError, apiRequest } from "@/lib/api";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { PanelMessage } from "@/components/ui/panel-message";
+import { Score } from "@/components/ui/score";
 
 export default function ProfilePage() {
   const { loading, ready, profile, refreshProfile } = useRequireAuth();
@@ -97,123 +108,115 @@ export default function ProfilePage() {
   }
 
   return (
-    <section className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-      <div className="rounded-[2rem] border border-white/10 bg-slate-950/60 p-6">
-        <p className="text-sm uppercase tracking-[0.3em] text-indigo-200/70">
-          Your pulse
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold text-white">{profile.username}</h1>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <StatCard label="Current streak" value={`${profile.currentStreak}d`} />
-          <StatCard label="Longest streak" value={`${profile.longestStreak}d`} />
-          <StatCard
-            label="Role"
-            value={profile.role}
-            tone="text-emerald-200"
-          />
-          <StatCard
-            label="Email status"
-            value={profile.isEmailVerified ? "Verified" : "Pending"}
-            tone={profile.isEmailVerified ? "text-emerald-200" : "text-amber-200"}
-          />
-        </div>
-      </div>
+    <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+      <Card>
+        <CardHeader>
+          <CardDescription>Your pulse</CardDescription>
+          <CardTitle className="text-3xl">{profile.username}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <StatCard label="Current streak" value={profile.currentStreak} suffix="d" hot />
+            <StatCard label="Longest streak" value={profile.longestStreak} suffix="d" />
+            <div className="rounded-2xl border border-[var(--border)] bg-black/20 p-4">
+              <p className="text-sm text-[var(--muted)]">Role</p>
+              <p className="mt-2 text-xl font-semibold text-white">{profile.role}</p>
+            </div>
+            <div className="rounded-2xl border border-[var(--border)] bg-black/20 p-4">
+              <p className="text-sm text-[var(--muted)]">Email status</p>
+              <p
+                className={`mt-2 text-xl font-semibold ${
+                  profile.isEmailVerified
+                    ? "text-[var(--accent)]"
+                    : "text-[var(--warning)]"
+                }`}
+              >
+                {profile.isEmailVerified ? "Verified" : "Pending"}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="rounded-[2rem] border border-white/10 bg-slate-950/60 p-6">
-        <p className="text-sm uppercase tracking-[0.3em] text-slate-400">
-          Account settings
-        </p>
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4" autoComplete="on">
-          <Field label="Username">
-            <input
-              name="username"
-              autoComplete="username"
-              defaultValue={profile.username}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none"
-              required
-            />
-          </Field>
-          <Field label="Email">
-            <input
-              name="email"
-              type="email"
-              autoComplete="email"
-              defaultValue={profile.email}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none"
-              required
-            />
-          </Field>
-          <Field label="New password (optional)">
-            <input
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              minLength={8}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none"
-              placeholder="Leave blank to keep current password"
-            />
-          </Field>
+      <Card>
+        <CardHeader>
+          <CardTitle>Account settings</CardTitle>
+          <CardDescription>Update how you show up in your pods.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
+            <label className="block space-y-2">
+              <span className="text-sm text-[var(--muted)]">Username</span>
+              <Input
+                name="username"
+                autoComplete="username"
+                defaultValue={profile.username}
+                required
+              />
+            </label>
+            <label className="block space-y-2">
+              <span className="text-sm text-[var(--muted)]">Email</span>
+              <Input
+                name="email"
+                type="email"
+                autoComplete="email"
+                defaultValue={profile.email}
+                required
+              />
+            </label>
+            <label className="block space-y-2">
+              <span className="text-sm text-[var(--muted)]">
+                New password (optional)
+              </span>
+              <Input
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                placeholder="Leave blank to keep current password"
+              />
+            </label>
 
-          {message ? <SuccessBanner message={message} /> : null}
-          {error ? <ErrorBanner message={error} /> : null}
+            {message ? <Alert variant="success">{message}</Alert> : null}
+            {error ? <Alert variant="danger">{error}</Alert> : null}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-2xl bg-indigo-500 px-5 py-3 font-medium text-white transition hover:bg-indigo-400 disabled:opacity-60"
-          >
-            {submitting ? "Saving..." : "Save changes"}
-          </button>
-        </form>
-      </div>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Saving..." : "Save changes"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </section>
-  );
-}
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block space-y-2">
-      <span className="text-sm text-slate-300">{label}</span>
-      {children}
-    </label>
   );
 }
 
 function StatCard({
   label,
   value,
-  tone = "text-white",
+  suffix,
+  hot = false,
 }: {
   label: string;
-  value: string;
-  tone?: string;
+  value: number;
+  suffix?: string;
+  hot?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/5 p-4">
-      <p className="text-sm text-slate-400">{label}</p>
-      <p className={`mt-2 text-2xl font-semibold ${tone}`}>{value}</p>
+    <div
+      className={`rounded-2xl border p-4 ${
+        hot
+          ? "border-[var(--warning)]/20 bg-[var(--warning)]/10"
+          : "border-[var(--border)] bg-black/20"
+      }`}
+    >
+      <p className="text-sm text-[var(--muted)]">{label}</p>
+      <Score
+        value={value}
+        suffix={suffix}
+        className={`mt-2 text-2xl font-semibold ${
+          hot ? "text-[var(--warning)]" : "text-white"
+        }`}
+      />
     </div>
-  );
-}
-
-function SuccessBanner({ message }: { message: string }) {
-  return (
-    <p className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
-      {message}
-    </p>
-  );
-}
-
-function ErrorBanner({ message }: { message: string }) {
-  return (
-    <p className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">
-      {message}
-    </p>
   );
 }

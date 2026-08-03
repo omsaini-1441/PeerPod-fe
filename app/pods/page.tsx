@@ -8,7 +8,6 @@ import { ApiError, apiRequest } from "@/lib/api";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import type { Group } from "@/lib/types";
 import { Alert } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,6 +19,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { PanelMessage } from "@/components/ui/panel-message";
 import { Select } from "@/components/ui/select";
+import { Score } from "@/components/ui/score";
+
+const spring = { type: "spring" as const, stiffness: 140, damping: 22 };
 
 export default function PodsPage() {
   const { isAuthenticated, loading, ready } = useRequireAuth();
@@ -169,22 +171,24 @@ export default function PodsPage() {
   }
 
   return (
-    <section className="space-y-8">
-      <div className="flex flex-col gap-6 border-b border-[var(--border)] pb-8 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-xl space-y-3">
-          <Badge variant="accent">Your pods</Badge>
-          <h1 className="pp-display text-4xl font-semibold text-white sm:text-5xl">
-            Rooms that keep you honest
-          </h1>
-          <p className="text-[var(--muted)]">
-            Create or open a pod, then let the timer and leaderboard do the
-            accountability work.
-          </p>
-        </div>
-      </div>
+    <section className="space-y-10">
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={spring}
+        className="max-w-2xl space-y-3"
+      >
+        <h1 className="pp-display text-4xl font-semibold text-white sm:text-5xl">
+          Rooms that keep you honest
+        </h1>
+        <p className="max-w-[55ch] text-[var(--muted)] leading-relaxed">
+          Create or open a pod, then let the timer and leaderboard do the
+          accountability work.
+        </p>
+      </motion.div>
 
-      <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-        <div className="space-y-5">
+      <div className="grid gap-6 lg:grid-cols-12 lg:items-start">
+        <div className="space-y-5 lg:col-span-4">
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -203,7 +207,7 @@ export default function PodsPage() {
                   placeholder="Exam Sprint"
                   required
                 />
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                   <Select
                     value={visibility}
                     onChange={(event) =>
@@ -222,7 +226,7 @@ export default function PodsPage() {
                   />
                 </div>
                 {createError ? <Alert variant="danger">{createError}</Alert> : null}
-                <Button type="submit" className="w-full sm:w-auto">
+                <Button type="submit" className="w-full">
                   Create pod
                 </Button>
               </form>
@@ -233,33 +237,36 @@ export default function PodsPage() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Lock className="h-4 w-4 text-[var(--accent)]" />
-                <CardTitle className="text-xl">Join private pod</CardTitle>
+                <CardTitle className="text-xl">Join by code</CardTitle>
               </div>
               <CardDescription>
-                Got a friend&apos;s invite code? Paste it here and join directly.
+                Paste a friend&apos;s invite and enter directly.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleJoinByCode} className="space-y-3">
                 <Input
                   value={inviteCode}
-                  onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
-                  placeholder="Invite code, e.g. A1B2C3D4"
+                  onChange={(event) =>
+                    setInviteCode(event.target.value.toUpperCase())
+                  }
+                  placeholder="A1B2C3D4"
                   maxLength={8}
                   required
+                  className="pp-mono tracking-widest"
                 />
                 {joinByCodeError ? (
                   <Alert variant="danger">{joinByCodeError}</Alert>
                 ) : null}
-                <Button type="submit" variant="secondary" className="w-full sm:w-auto">
-                  Join by code
+                <Button type="submit" variant="secondary" className="w-full">
+                  Join private pod
                 </Button>
               </form>
             </CardContent>
           </Card>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-8 lg:col-span-8">
           <AnimatePresence initial={false}>
             {error ? (
               <motion.div
@@ -273,126 +280,130 @@ export default function PodsPage() {
             ) : null}
           </AnimatePresence>
 
-          <section className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
+          <section className="space-y-4">
+            <div className="flex items-baseline justify-between gap-3">
               <div>
-                <h2 className="pp-display text-2xl font-semibold text-white">Your pods</h2>
+                <h2 className="pp-display text-2xl font-semibold text-white">
+                  Your pods
+                </h2>
                 <p className="text-sm text-[var(--muted)]">
                   Rooms you already belong to.
                 </p>
               </div>
-              <Badge>{myGroups.length}</Badge>
+              <Score value={myGroups.length} className="text-[var(--muted)]" />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3">
               {fetching
                 ? Array.from({ length: 2 }).map((_, index) => (
-                    <Card key={index} className="h-40 animate-pulse bg-white/[0.03]" />
+                    <div
+                      key={index}
+                      className="h-24 animate-pulse rounded-[1.5rem] border border-[var(--border)] bg-white/[0.03]"
+                    />
                   ))
                 : myGroups.length === 0 ? (
-                    <Card className="sm:col-span-2">
+                    <Card>
                       <CardContent className="p-5 text-sm text-[var(--muted)]">
-                        You have not joined a pod yet. Use the discovery section below
-                        to join a friend&apos;s pod first, or create your own.
+                        No pods yet. Create one or join from Discover below.
                       </CardContent>
                     </Card>
                   ) : (
-                    myGroups.map((group) => (
+                    myGroups.map((group, index) => (
                       <motion.div
                         key={`mine-${group.id}`}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.22 }}
+                        transition={{ ...spring, delay: index * 0.04 }}
                       >
-                        <Card className="h-full">
-                          <CardContent className="flex h-full flex-col p-5">
+                        <Link
+                          href={`/pods/${group.id}`}
+                          className="group flex items-center justify-between gap-4 rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-strong)] px-5 py-4 transition-all duration-[var(--duration-med)] ease-[var(--ease-out-expo)] hover:-translate-y-0.5 hover:border-[var(--accent)]/25 hover:bg-[#141916]"
+                        >
+                          <div className="min-w-0 space-y-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <Badge variant="accent">{group.myRole ?? "MEMBER"}</Badge>
-                              <Badge>{group.memberCount ?? 0} members</Badge>
+                              <h3 className="pp-display truncate text-xl font-semibold text-white">
+                                {group.name}
+                              </h3>
+                              <span className="text-xs text-[var(--muted)]">
+                                {group.myRole ?? "MEMBER"}
+                              </span>
                             </div>
-                            <h3 className="pp-display mt-4 text-2xl font-semibold text-white">
-                              {group.name}
-                            </h3>
-                            <p className="mt-2 text-sm text-[var(--muted)]">
-                              Open the room, manage tasks, and start focus blocks.
+                            <p className="text-sm text-[var(--muted)]">
+                              {group.memberCount ?? 0} members
                             </p>
-                            <div className="mt-auto pt-5">
-                              <Button asChild>
-                                <Link href={`/pods/${group.id}`}>
-                                  Open pod
-                                  <ArrowRight className="h-4 w-4" />
-                                </Link>
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
+                          </div>
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-white/[0.03] text-white transition-transform duration-500 ease-[var(--ease-out-expo)] group-hover:translate-x-0.5 group-hover:border-[var(--accent)]/30 group-hover:bg-[var(--accent-soft)] group-hover:text-[var(--accent)]">
+                            <ArrowRight className="h-4 w-4" />
+                          </span>
+                        </Link>
                       </motion.div>
                     ))
                   )}
             </div>
           </section>
 
-          <section className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
+          <section className="space-y-4">
+            <div className="flex items-baseline justify-between gap-3">
               <div>
-                <h2 className="pp-display text-2xl font-semibold text-white">Discover and join</h2>
+                <h2 className="pp-display text-2xl font-semibold text-white">
+                  Discover
+                </h2>
                 <p className="text-sm text-[var(--muted)]">
-                  Public pods you can enter without creating one first.
+                  Public rooms you can enter now.
                 </p>
               </div>
-              <Badge>{groups.length}</Badge>
+              <Score value={groups.length} className="text-[var(--muted)]" />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               {fetching
                 ? Array.from({ length: 4 }).map((_, index) => (
-                    <Card
+                    <div
                       key={index}
-                      className="h-44 animate-pulse bg-white/[0.03]"
+                      className="h-40 animate-pulse rounded-[1.5rem] border border-[var(--border)] bg-white/[0.03]"
                     />
                   ))
                 : groups.length === 0 ? (
                     <Card className="sm:col-span-2">
                       <CardContent className="p-5 text-sm text-[var(--muted)]">
-                        No discoverable pods right now. Ask a friend for an invite code
-                        to a private pod or create a new room.
+                        No discoverable pods right now. Ask for an invite code or
+                        create a room.
                       </CardContent>
                     </Card>
                   ) : (
-                    groups.map((group) => (
+                    groups.map((group, index) => (
                       <motion.div
                         key={`discover-${group.id}`}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.22 }}
+                        transition={{ ...spring, delay: index * 0.04 }}
+                        className="h-full"
                       >
-                        <Card className="h-full">
+                        <Card className="h-full transition-transform duration-[var(--duration-med)] ease-[var(--ease-out-expo)] hover:-translate-y-0.5">
                           <CardContent className="flex h-full flex-col p-5">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <Badge
-                                variant={
-                                  group.visibility === "PRIVATE" ? "warning" : "accent"
-                                }
-                              >
-                                {group.visibility === "PRIVATE" ? (
-                                  <Lock className="h-3 w-3" />
-                                ) : (
-                                  <Users className="h-3 w-3" />
-                                )}
-                                {group.visibility}
-                              </Badge>
-                              <Badge>{group.memberCount ?? 0} members</Badge>
+                            <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
+                              {group.visibility === "PRIVATE" ? (
+                                <Lock className="h-3.5 w-3.5" />
+                              ) : (
+                                <Users className="h-3.5 w-3.5" />
+                              )}
+                              <span>{group.visibility.toLowerCase()}</span>
+                              <span>·</span>
+                              <span>{group.memberCount ?? 0} in room</span>
                               {group.maxMembers ? (
-                                <Badge>Cap {group.maxMembers}</Badge>
+                                <>
+                                  <span>·</span>
+                                  <span>cap {group.maxMembers}</span>
+                                </>
                               ) : null}
                             </div>
 
-                            <h3 className="pp-display mt-4 text-2xl font-semibold text-white">
+                            <h3 className="pp-display mt-3 text-xl font-semibold text-white">
                               {group.name}
                             </h3>
 
                             {group.visibility === "PRIVATE" ? (
-                              <div className="mt-4 space-y-2">
+                              <div className="mt-4">
                                 <Input
                                   value={joinCode[group.id] ?? ""}
                                   onChange={(event) =>
@@ -402,11 +413,12 @@ export default function PodsPage() {
                                     }))
                                   }
                                   placeholder="Invite code"
+                                  className="pp-mono"
                                 />
                               </div>
                             ) : (
-                              <p className="mt-3 text-sm text-[var(--muted)]">
-                                Public room. Join instantly and start competing.
+                              <p className="mt-2 text-sm text-[var(--muted)]">
+                                Join and start competing on the board.
                               </p>
                             )}
 
@@ -414,15 +426,16 @@ export default function PodsPage() {
                               <Button
                                 type="button"
                                 variant="secondary"
+                                size="sm"
                                 onClick={() => handleJoin(group)}
                               >
-                                Join pod
+                                Join
                               </Button>
                               {group.visibility === "PUBLIC" ? (
-                                <Button asChild variant="ghost">
+                                <Button asChild variant="ghost" size="sm">
                                   <Link href={`/pods/${group.id}`}>
                                     Preview
-                                    <ArrowRight className="h-4 w-4" />
+                                    <ArrowRight className="h-3.5 w-3.5" />
                                   </Link>
                                 </Button>
                               ) : null}

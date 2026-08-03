@@ -4,9 +4,14 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Maximize2, Minimize2, Play, CircleStop } from "lucide-react";
 import type { Task } from "@/lib/types";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
 
 interface FocusTimerCardProps {
@@ -38,36 +43,47 @@ export function FocusTimerCard({
   const selectedTask = tasks.find((task) => String(task.id) === selectedTaskId);
 
   return (
-    <Card className="relative overflow-hidden border-[var(--accent)]/20 bg-[radial-gradient(circle_at_top,_rgba(198,243,90,0.12),_transparent_55%)]">
+    <Card className="relative">
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
-          <CardTitle>Focus timer</CardTitle>
-          <Badge variant={activeSession ? "accent" : "default"}>
+          <CardTitle>Focus arena</CardTitle>
+          <span
+            className={`rounded-md border px-2 py-0.5 text-[11px] font-medium ${
+              activeSession
+                ? "border-[var(--accent)]/25 bg-[var(--accent-soft)] text-[#d7f98a]"
+                : "border-[var(--border)] bg-white/[0.03] text-[var(--muted)]"
+            }`}
+          >
             {activeSession ? "Live" : "Idle"}
-          </Badge>
+          </span>
         </div>
         <CardDescription>
           {dayCapReached
-            ? "Day board's full — keep going for the pod vibe and your streak."
+            ? "Day board is full — keep going for the pod vibe and your streak."
             : activeSession
               ? selectedTask
                 ? `Locked on “${selectedTask.title}”. Stay in the block.`
-                : "Your block is live. Enter zen mode for a calmer full-screen timer."
-              : "Pick an open task, then start a timed focus block for this pod."}
+                : "Your block is live. Enter zen for a calmer full-screen timer."
+              : "Pick an open task, then start a timed focus block."}
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-5">
         <motion.div
           key={activeSession ? "timer-active" : "timer-idle"}
-          initial={{ opacity: 0.85, y: 6 }}
+          initial={{ opacity: 0.85, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-[var(--border)] bg-black/30 px-5 py-6"
+          transition={{ type: "spring", stiffness: 140, damping: 22 }}
+          className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-inset)] px-5 py-8"
         >
-          <p className="text-[11px] uppercase tracking-[0.28em] text-[var(--muted)]">
-            Elapsed
-          </p>
-          <p className="pp-mono mt-3 text-5xl font-medium tracking-tight text-white sm:text-6xl">
+          {activeSession ? (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(198,243,90,0.1),_transparent_65%)]"
+            />
+          ) : null}
+          <p className="relative text-sm text-[var(--muted)]">Elapsed</p>
+          <p className="pp-mono relative mt-3 text-5xl font-medium tracking-tight text-white sm:text-6xl">
             {elapsedLabel}
           </p>
         </motion.div>
@@ -96,7 +112,7 @@ export function FocusTimerCard({
               disabled={isMutating}
             >
               <Maximize2 className="h-4 w-4" />
-              Enter zen mode
+              Enter zen
             </Button>
             <Button
               variant="danger"
@@ -120,10 +136,7 @@ export function FocusTimerCard({
 }
 
 const PEAK_QUOTES: Array<{ text: string; attribution: string }> = [
-  {
-    text: "Stay fuckin hard.",
-    attribution: "David Goggins",
-  },
+  { text: "Stay fuckin hard.", attribution: "David Goggins" },
   {
     text: "Who's gonna carry the boats and the logs?",
     attribution: "David Goggins",
@@ -140,10 +153,7 @@ const PEAK_QUOTES: Array<{ text: string; attribution: string }> = [
     text: "When you think you're done, you're only at 40% of what your body is capable of doing.",
     attribution: "David Goggins",
   },
-  {
-    text: "No one is coming to save you. Get up.",
-    attribution: "David Goggins",
-  },
+  { text: "No one is coming to save you. Get up.", attribution: "David Goggins" },
   {
     text: "We suffer more in imagination than in reality.",
     attribution: "Seneca",
@@ -176,10 +186,7 @@ const PEAK_QUOTES: Array<{ text: string; attribution: string }> = [
     text: "Either you run the day or the day runs you.",
     attribution: "Jim Rohn",
   },
-  {
-    text: "Discipline equals freedom.",
-    attribution: "Jocko Willink",
-  },
+  { text: "Discipline equals freedom.", attribution: "Jocko Willink" },
   {
     text: "Most people quit at the exact moment the work starts becoming who they are.",
     attribution: "PeerPod",
@@ -236,54 +243,24 @@ export function FocusZenMode({
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#050605] px-6"
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#050605]/95 px-6 backdrop-blur-xl"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
           <div
             aria-hidden
-            className="pointer-events-none absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2"
-          >
-            <motion.div
-              className="absolute left-1/2 top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,_rgba(198,243,90,0.07),_transparent_70%)] sm:h-[42rem] sm:w-[42rem]"
-              animate={{ scale: [1, 1.08, 1], opacity: [0.25, 0.5, 0.25] }}
-              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-            />
-            <motion.div
-              className="absolute left-1/2 top-1/2 h-[24rem] w-[24rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--accent)]/15 bg-[radial-gradient(circle,_rgba(198,243,90,0.12),_transparent_72%)] sm:h-[30rem] sm:w-[30rem]"
-              animate={{ scale: [1, 1.1, 1], opacity: [0.35, 0.65, 0.35] }}
-              transition={{
-                duration: 9,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.4,
-              }}
-            />
-            <motion.div
-              className="absolute left-1/2 top-1/2 h-[14rem] w-[14rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--accent)]/25 bg-[radial-gradient(circle,_rgba(198,243,90,0.2),_transparent_70%)] sm:h-[18rem] sm:w-[18rem]"
-              animate={{ scale: [1, 1.14, 1], opacity: [0.45, 0.85, 0.45] }}
-              transition={{
-                duration: 7,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.8,
-              }}
-            />
-          </div>
+            className="pointer-events-none absolute left-1/2 top-[42%] h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,_rgba(198,243,90,0.12),_transparent_70%)] sm:h-[36rem] sm:w-[36rem]"
+          />
 
           <motion.div
             className="relative z-10 flex w-full max-w-2xl flex-col items-center text-center"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.35 }}
+            transition={{ type: "spring", stiffness: 120, damping: 20 }}
           >
-            <Badge variant="accent" className="mb-6">
-              Focus mode
-            </Badge>
-
-            <p className="text-[11px] uppercase tracking-[0.32em] text-[var(--muted)]">
+            <p className="text-sm text-[var(--muted)]">
               {taskTitle ? "Working on" : "Open block"}
             </p>
             <h2 className="pp-display mt-2 max-w-xl text-3xl font-semibold text-white sm:text-4xl">
@@ -301,11 +278,11 @@ export function FocusZenMode({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.45 }}
+                  transition={{ duration: 0.45, ease: [0.32, 0.72, 0, 1] }}
                   className="px-2 text-base leading-7 text-[var(--muted)] sm:text-lg"
                 >
                   “{quote.text}”
-                  <footer className="mt-3 text-xs uppercase tracking-[0.22em] text-[var(--accent)]/80">
+                  <footer className="mt-3 text-xs tracking-[0.18em] text-[var(--accent)]/80">
                     {quote.attribution}
                   </footer>
                 </motion.blockquote>

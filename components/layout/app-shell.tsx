@@ -16,30 +16,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { authUser, isAuthenticated, logout } = useAuth();
 
   return (
-    <div className="pp-shell text-[var(--foreground)]">
-      <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[#090b0a]/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-6">
+    <div className="pp-shell overflow-x-hidden text-[var(--foreground)]">
+      <div className="sticky top-0 z-40 px-4 pt-4 sm:px-5">
+        <header className="mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-full border border-[var(--border)] bg-[#0c0f0d]/75 px-3 py-2 shadow-[0_8px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:px-4">
           <Link
             href={isAuthenticated ? "/pods" : "/"}
-            className="flex min-w-0 items-center gap-3"
+            className="flex min-w-0 items-center gap-2.5 rounded-full py-1 pl-1 pr-2 transition-opacity hover:opacity-90"
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] text-sm font-bold text-[var(--accent-ink)]">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-bold text-[var(--accent-ink)]">
               PP
             </div>
-            <div className="min-w-0">
-              <p className="pp-display text-lg leading-none font-semibold tracking-tight">
-                PeerPod
-              </p>
-              <p className="mt-1 hidden truncate text-xs text-[var(--muted)] sm:block">
-                Focus that moves the board
-              </p>
-            </div>
+            <span className="pp-display truncate text-base font-semibold tracking-tight text-white sm:text-lg">
+              PeerPod
+            </span>
           </Link>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {isAuthenticated ? (
               <>
-                <nav className="hidden items-center gap-1 md:flex">
+                <nav className="hidden items-center gap-0.5 md:flex">
                   {navItems.map((item) => {
                     const active = pathname.startsWith(item.href);
                     return (
@@ -47,9 +42,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         key={item.href}
                         href={item.href}
                         className={cn(
-                          "rounded-lg px-3 py-2 text-sm transition",
+                          "rounded-full px-3.5 py-1.5 text-sm transition-all duration-[var(--duration-med)] ease-[var(--ease-out-expo)]",
                           active
-                            ? "bg-white/8 text-white"
+                            ? "bg-white/10 text-white"
                             : "text-[var(--muted)] hover:bg-white/5 hover:text-white",
                         )}
                       >
@@ -59,15 +54,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   })}
                 </nav>
 
-                <div className="hidden h-6 w-px bg-white/10 lg:block" />
-
-                <p className="hidden max-w-[10rem] truncate text-sm text-[var(--muted)] lg:block">
+                <p className="hidden max-w-[9rem] truncate px-2 text-sm text-[var(--muted)] lg:block">
                   {authUser?.username}
                 </p>
 
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="ghost"
                   size="sm"
                   onClick={() => {
                     void logout().then(() => {
@@ -79,7 +72,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </Button>
               </>
             ) : (
-              <nav className="flex items-center gap-2">
+              <nav className="flex items-center gap-1.5">
                 <Link
                   href="/login"
                   className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
@@ -90,15 +83,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   href="/register"
                   className={cn(buttonVariants({ variant: "default", size: "sm" }))}
                 >
-                  Create account
+                  Join
                 </Link>
               </nav>
             )}
           </div>
-        </div>
-      </header>
+        </header>
+      </div>
 
-      <main className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-6 sm:py-10">
+      <main className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-6 sm:py-12">
         {children}
       </main>
     </div>

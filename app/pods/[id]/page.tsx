@@ -548,9 +548,9 @@ export default function PodDetailPage() {
         isMutating={isMutating}
       />
 
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-6">
         <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-12">
-          <div className="min-h-0 space-y-5 lg:col-span-5">
+          <div className="min-h-0 lg:col-span-5">
             <FocusTimerCard
               elapsedLabel={formatElapsed(activeSession ? elapsed : 0)}
               activeSession={Boolean(activeSession)}
@@ -563,11 +563,6 @@ export default function PodDetailPage() {
               onStop={stopSession}
               onEnterZen={() => setZenModeOpen(true)}
             />
-            <FocusingNowCard
-              focusing={presence?.focusing ?? []}
-              todayMinutes={presence?.todayMinutes ?? 0}
-              currentUserId={profile?.id}
-            />
           </div>
           <div className="min-h-0 lg:col-span-7">
             <LeaderboardCard
@@ -578,6 +573,12 @@ export default function PodDetailPage() {
             />
           </div>
         </div>
+
+        <FocusingNowCard
+          focusing={presence?.focusing ?? []}
+          todayMinutes={presence?.todayMinutes ?? 0}
+          currentUserId={profile?.id}
+        />
 
         <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-12">
           <div className="min-h-0 lg:col-span-8">

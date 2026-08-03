@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { DoorOpen, Flame, Users } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { DoorOpen, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Score } from "@/components/ui/score";
 
 interface PodHeaderProps {
   groupName: string;
@@ -24,27 +24,12 @@ export function PodHeader({
 }: PodHeaderProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="flex flex-col gap-5 border-b border-[var(--border)] pb-6 sm:flex-row sm:items-end sm:justify-between"
+      transition={{ type: "spring", stiffness: 140, damping: 22 }}
+      className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"
     >
-      <div className="min-w-0 space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="accent">Live pod</Badge>
-          <span className="inline-flex items-center gap-1.5 text-sm text-[var(--muted)]">
-            <Users className="h-3.5 w-3.5" />
-            {memberCount} members
-          </span>
-          {focusingCount > 0 ? (
-            <Badge variant="glow">{focusingCount} focusing</Badge>
-          ) : null}
-          <span className="inline-flex items-center gap-1.5 text-sm text-[var(--muted)]">
-            <Flame className="h-3.5 w-3.5 text-[var(--warning)]" />
-            {currentStreak}d streak
-          </span>
-        </div>
-
+      <div className="min-w-0 space-y-4">
         <div>
           <h1 className="pp-display text-4xl font-semibold text-white sm:text-5xl">
             {groupName}
@@ -54,10 +39,34 @@ export function PodHeader({
               "Start a focus block, finish tasks, and watch today's board move."}
           </p>
         </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white/[0.03] px-3 py-1.5 text-sm text-[var(--muted)]">
+            <Score value={memberCount} className="text-white" />
+            <span>members</span>
+          </div>
+
+          {focusingCount > 0 ? (
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)]/25 bg-[var(--accent-soft)] px-3 py-1.5 text-sm text-[#d7f98a]">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)] opacity-50" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
+              </span>
+              <Score value={focusingCount} />
+              <span>focusing</span>
+            </div>
+          ) : null}
+
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--warning)]/20 bg-[var(--warning)]/10 px-3 py-1.5 text-sm text-[var(--warning)]">
+            <Flame className="h-3.5 w-3.5" />
+            <Score value={currentStreak} />
+            <span>d streak</span>
+          </div>
+        </div>
       </div>
 
       <Button
-        variant="secondary"
+        variant="ghost"
         onClick={onLeave}
         disabled={isMutating}
         className="shrink-0 self-start sm:self-auto"

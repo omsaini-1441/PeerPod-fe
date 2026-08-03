@@ -45,7 +45,7 @@ function RegisterForm() {
 
   if (loading || !ready) {
     return (
-      <section className="mx-auto max-w-md py-12 text-slate-300">
+      <section className="mx-auto max-w-md py-12 text-[var(--muted)]">
         Checking your session...
       </section>
     );
@@ -55,17 +55,16 @@ function RegisterForm() {
     <section className="mx-auto max-w-md py-12">
       <Card>
         <CardContent className="p-8">
-          <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">
-            Start your pod
-          </p>
-          <h1 className="mt-3 text-3xl font-semibold text-white">Create your account</h1>
-          <p className="mt-2 text-sm text-slate-400">
-            The goal is simple: show up, focus, and keep your rank earned.
+          <h1 className="pp-display text-3xl font-semibold text-white">
+            Create your account
+          </h1>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Show up, focus, and keep your rank earned.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-4" autoComplete="on">
             <label className="block space-y-2">
-              <span className="text-sm text-slate-300">Username</span>
+              <span className="text-sm text-[var(--muted)]">Username</span>
               <Input
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
@@ -76,7 +75,7 @@ function RegisterForm() {
             </label>
 
             <label className="block space-y-2">
-              <span className="text-sm text-slate-300">Email</span>
+              <span className="text-sm text-[var(--muted)]">Email</span>
               <Input
                 type="email"
                 value={email}
@@ -88,7 +87,7 @@ function RegisterForm() {
             </label>
 
             <label className="block space-y-2">
-              <span className="text-sm text-slate-300">Password</span>
+              <span className="text-sm text-[var(--muted)]">Password</span>
               <Input
                 type="password"
                 value={password}
@@ -103,14 +102,17 @@ function RegisterForm() {
             {message ? <Alert variant="success">{message}</Alert> : null}
             {error ? <Alert variant="danger">{error}</Alert> : null}
 
-            <Button type="submit" variant="accent" className="w-full" disabled={submitting}>
+            <Button type="submit" className="w-full" disabled={submitting}>
               {submitting ? "Creating account..." : "Create account"}
             </Button>
           </form>
 
-          <p className="mt-6 text-sm text-slate-400">
+          <p className="mt-6 text-sm text-[var(--muted)]">
             Already registered?{" "}
-            <Link href="/login" className="text-indigo-200 hover:text-white">
+            <Link
+              href="/login"
+              className="text-[var(--accent)] transition hover:text-white"
+            >
               Log in
             </Link>
           </p>
@@ -124,7 +126,9 @@ export default function RegisterPage() {
   return (
     <Suspense
       fallback={
-        <section className="mx-auto max-w-md py-12 text-slate-300">Loading...</section>
+        <section className="mx-auto max-w-md py-12 text-[var(--muted)]">
+          Loading...
+        </section>
       }
     >
       <RegisterForm />

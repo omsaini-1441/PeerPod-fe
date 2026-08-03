@@ -3,10 +3,16 @@
 import { motion } from "framer-motion";
 import { Crown, TrendingUp } from "lucide-react";
 import type { LeaderboardPeriod, LeaderboardResponse, Profile } from "@/lib/types";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Score } from "@/components/ui/score";
 import { cn } from "@/lib/utils";
 
 interface LeaderboardCardProps {
@@ -40,11 +46,11 @@ export function LeaderboardCard({
   const periodLabel = period === "day" ? "today" : "this week";
 
   return (
-    <Card className="overflow-hidden border-[var(--leader)]/15 bg-[radial-gradient(circle_at_top_right,_rgba(245,215,110,0.1),_transparent_45%)]">
+    <Card className="h-full">
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <CardTitle>Leaderboard</CardTitle>
+            <CardTitle>Race board</CardTitle>
             <CardDescription className="mt-1">
               {period === "day"
                 ? "Today's race — the board resets with the sun."
@@ -52,7 +58,7 @@ export function LeaderboardCard({
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex rounded-xl border border-[var(--border)] bg-black/25 p-1">
+            <div className="inline-flex rounded-full border border-[var(--border)] bg-black/25 p-1">
               <PeriodButton
                 active={period === "day"}
                 onClick={() => onPeriodChange("day")}
@@ -67,9 +73,16 @@ export function LeaderboardCard({
               </PeriodButton>
             </div>
             {leaderboard?.myRank ? (
-              <Badge variant={isLeading ? "warning" : "accent"}>
+              <span
+                className={cn(
+                  "rounded-md border px-2 py-0.5 text-[11px] font-medium",
+                  isLeading
+                    ? "border-[var(--leader)]/25 bg-[var(--leader-soft)] text-[var(--leader)]"
+                    : "border-[var(--accent)]/25 bg-[var(--accent-soft)] text-[#d7f98a]",
+                )}
+              >
                 You #{leaderboard.myRank}
-              </Badge>
+              </span>
             ) : null}
           </div>
         </div>
@@ -139,7 +152,7 @@ export function LeaderboardCard({
               </div>
             </div>
 
-            <div className="space-y-4 rounded-2xl border border-[var(--border)] bg-black/25 p-4">
+            <div className="space-y-4 rounded-2xl border border-[var(--border)] bg-black/20 p-4">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[var(--muted)]">
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-[var(--leader)]" />
@@ -165,7 +178,11 @@ export function LeaderboardCard({
                     : 0;
 
                   return (
-                    <div key={`race-${entry.userId}`} className="space-y-1.5">
+                    <motion.div
+                      key={`race-${entry.userId}`}
+                      layout
+                      className="space-y-1.5"
+                    >
                       <div className="flex items-baseline justify-between gap-3">
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium text-white">
@@ -189,20 +206,19 @@ export function LeaderboardCard({
                             </p>
                           ) : null}
                         </div>
-                        <p
+                        <Score
+                          value={entry.points}
                           className={cn(
-                            "pp-mono shrink-0 text-sm font-medium",
+                            "shrink-0 text-sm font-medium",
                             isFirst
                               ? "text-[var(--leader)]"
                               : isCurrentUser
                                 ? "text-[var(--chase)]"
                                 : "text-white",
                           )}
-                        >
-                          {entry.points}
-                        </p>
+                        />
                       </div>
-                      <div className="h-3.5 overflow-hidden rounded-full bg-white/[0.06]">
+                      <div className="h-3 overflow-hidden rounded-full bg-white/[0.06]">
                         <motion.div
                           className={cn(
                             "h-full rounded-full",
@@ -220,7 +236,7 @@ export function LeaderboardCard({
                           }}
                         />
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
@@ -250,7 +266,7 @@ function PeriodButton({
       size="sm"
       onClick={onClick}
       className={cn(
-        "h-8 rounded-lg px-3",
+        "h-8 rounded-full px-3",
         active
           ? "bg-white/10 text-white hover:bg-white/10 hover:text-white"
           : "text-[var(--muted)]",

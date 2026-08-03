@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import type { FocusHeatmapCell, FocusHeatmapResponse } from "@/lib/types";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Score } from "@/components/ui/score";
 import { cn } from "@/lib/utils";
 
 interface FocusHeatmapCardProps {
@@ -87,15 +87,20 @@ export function FocusHeatmapCard({ heatmap }: FocusHeatmapCardProps) {
     : 0;
 
   return (
-    <Card className="w-full overflow-visible border-[var(--accent)]/15">
+    <Card className="w-full overflow-visible">
       <CardHeader className="flex-row items-center justify-between gap-4 space-y-0 py-4">
         <div>
-          <CardTitle className="text-base sm:text-lg">Focus heatmap</CardTitle>
+          <CardTitle className="text-base sm:text-lg">Effort map</CardTitle>
           <p className="mt-0.5 text-xs text-[var(--muted)]">
             Last {heatmap?.days ?? 84} days
           </p>
         </div>
-        <Badge variant="accent">{totalHours}h</Badge>
+        <Score
+          value={totalHours}
+          suffix="h"
+          decimals={1}
+          className="text-sm text-[var(--accent)]"
+        />
       </CardHeader>
 
       <CardContent className="pt-0">

@@ -45,7 +45,7 @@ function LoginForm() {
 
   if (loading || !ready) {
     return (
-      <section className="mx-auto max-w-md py-12 text-slate-300">
+      <section className="mx-auto max-w-md py-12 text-[var(--muted)]">
         Checking your session...
       </section>
     );
@@ -55,17 +55,16 @@ function LoginForm() {
     <section className="mx-auto max-w-md py-12">
       <Card>
         <CardContent className="p-8">
-          <p className="text-sm uppercase tracking-[0.3em] text-indigo-200/70">
-            Welcome back
-          </p>
-          <h1 className="mt-3 text-3xl font-semibold text-white">Log into PeerPod</h1>
-          <p className="mt-2 text-sm text-slate-400">
+          <h1 className="pp-display text-3xl font-semibold text-white">
+            Log into PeerPod
+          </h1>
+          <p className="mt-2 text-sm text-[var(--muted)]">
             Pick up where your pod leaderboard left off.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-4" autoComplete="on">
             <label className="block space-y-2">
-              <span className="text-sm text-slate-300">Username</span>
+              <span className="text-sm text-[var(--muted)]">Username</span>
               <Input
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
@@ -76,7 +75,7 @@ function LoginForm() {
             </label>
 
             <label className="block space-y-2">
-              <span className="text-sm text-slate-300">Password</span>
+              <span className="text-sm text-[var(--muted)]">Password</span>
               <Input
                 type="password"
                 value={password}
@@ -95,9 +94,12 @@ function LoginForm() {
             </Button>
           </form>
 
-          <p className="mt-6 text-sm text-slate-400">
+          <p className="mt-6 text-sm text-[var(--muted)]">
             No account yet?{" "}
-            <Link href="/register" className="text-indigo-200 hover:text-white">
+            <Link
+              href="/register"
+              className="text-[var(--accent)] transition hover:text-white"
+            >
               Create one
             </Link>
           </p>
@@ -109,7 +111,13 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<section className="mx-auto max-w-md py-12 text-slate-300">Loading...</section>}>
+    <Suspense
+      fallback={
+        <section className="mx-auto max-w-md py-12 text-[var(--muted)]">
+          Loading...
+        </section>
+      }
+    >
       <LoginForm />
     </Suspense>
   );
