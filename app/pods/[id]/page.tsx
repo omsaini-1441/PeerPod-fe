@@ -36,7 +36,7 @@ export default function PodDetailPage() {
   const toast = useToast();
   const toastRef = useRef(toast);
   toastRef.current = toast;
-  const { isAuthenticated, loading, profile, getSocketToken, refreshProfile } =
+  const { isAuthenticated, loading, profile, getSocketToken, refreshProfile, ready } =
     useRequireAuth();
 
   const [group, setGroup] = useState<Group | null>(null);
@@ -250,6 +250,7 @@ export default function PodDetailPage() {
 
   const loadPodData = useCallback(async () => {
     if (!isAuthenticated) {
+      setLoadingPage(false);
       return;
     }
 
@@ -519,7 +520,15 @@ export default function PodDetailPage() {
     }
   }
 
-  if (loading || loadingPage) {
+  if (loading) {
+    return <PanelMessage message="Loading pod..." />;
+  }
+
+  if (!ready) {
+    return <PanelMessage message="Redirecting to sign in..." />;
+  }
+
+  if (loadingPage) {
     return <PanelMessage message="Loading pod..." />;
   }
 

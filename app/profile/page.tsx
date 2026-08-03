@@ -1,18 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ApiError, apiRequest } from "@/lib/api";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { PanelMessage } from "@/components/ui/panel-message";
 
 export default function ProfilePage() {
-  const { loading, isAuthenticated, profile, refreshProfile } = useRequireAuth();
+  const { loading, ready, profile, refreshProfile } = useRequireAuth();
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!ready || profile) {
+      return;
+    }
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        await refreshProfile();
+      } catch (caughtError) {
+        if (!cancelled) {
+          setProfileError(
+            caughtError instanceof ApiError
+              ? caughtError.message
+              : "Unable to load profile.",
+          );
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, profile, refreshProfile]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isAuthenticated) {
+    if (!ready) {
       return;
     }
 
@@ -53,8 +80,20 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading || !profile) {
-    return <PageLoader label="Loading your profile..." />;
+  if (loading) {
+    return <PanelMessage message="Loading your profile..." />;
+  }
+
+  if (!ready) {
+    return <PanelMessage message="Redirecting to sign in..." />;
+  }
+
+  if (profileError) {
+    return <PanelMessage message={profileError} />;
+  }
+
+  if (!profile) {
+    return <PanelMessage message="Loading your profile..." />;
   }
 
   return (
@@ -159,14 +198,6 @@ function StatCard({
     <div className="rounded-2xl border border-white/8 bg-white/5 p-4">
       <p className="text-sm text-slate-400">{label}</p>
       <p className={`mt-2 text-2xl font-semibold ${tone}`}>{value}</p>
-    </div>
-  );
-}
-
-function PageLoader({ label }: { label: string }) {
-  return (
-    <div className="rounded-[2rem] border border-white/10 bg-slate-950/60 p-10 text-center text-slate-300">
-      {label}
     </div>
   );
 }

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { BackendError, backendJson } from "@/lib/server/backend";
-import { clearSessionToken, getSessionToken } from "@/lib/server/session";
+import {
+  clearSessionCookieOnResponse,
+  getSessionToken,
+} from "@/lib/server/session";
 import type { AuthUser, Profile } from "@/lib/types";
 
 export async function GET() {
@@ -26,8 +29,9 @@ export async function GET() {
     });
   } catch (error) {
     if (error instanceof BackendError && (error.status === 401 || error.status === 403)) {
-      await clearSessionToken();
-      return NextResponse.json({ authenticated: false as const });
+      return clearSessionCookieOnResponse(
+        NextResponse.json({ authenticated: false as const }),
+      );
     }
 
     return NextResponse.json(

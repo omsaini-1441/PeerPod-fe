@@ -22,10 +22,10 @@ import { PanelMessage } from "@/components/ui/panel-message";
 import { Select } from "@/components/ui/select";
 
 export default function PodsPage() {
-  const { isAuthenticated, loading } = useRequireAuth();
+  const { isAuthenticated, loading, ready } = useRequireAuth();
   const [groups, setGroups] = useState<Group[]>([]);
   const [myGroups, setMyGroups] = useState<Group[]>([]);
-  const [fetching, setFetching] = useState(true);
+  const [fetching, setFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [createName, setCreateName] = useState("");
@@ -38,6 +38,7 @@ export default function PodsPage() {
 
   const loadGroups = useCallback(async () => {
     if (!isAuthenticated) {
+      setFetching(false);
       return;
     }
 
@@ -65,7 +66,7 @@ export default function PodsPage() {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!ready) {
       return;
     }
 
@@ -74,11 +75,11 @@ export default function PodsPage() {
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [isAuthenticated, loadGroups]);
+  }, [ready, loadGroups]);
 
   async function handleCreatePod(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isAuthenticated) {
+    if (!ready) {
       return;
     }
 
@@ -107,7 +108,7 @@ export default function PodsPage() {
   }
 
   async function handleJoin(group: Group) {
-    if (!isAuthenticated) {
+    if (!ready) {
       return;
     }
 
@@ -134,7 +135,7 @@ export default function PodsPage() {
 
   async function handleJoinByCode(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isAuthenticated) {
+    if (!ready) {
       return;
     }
 
@@ -161,6 +162,10 @@ export default function PodsPage() {
 
   if (loading) {
     return <PanelMessage message="Loading your pods..." />;
+  }
+
+  if (!ready) {
+    return <PanelMessage message="Redirecting to sign in..." />;
   }
 
   return (

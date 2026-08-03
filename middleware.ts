@@ -11,9 +11,14 @@ export function middleware(request: NextRequest) {
   const hasSession = Boolean(request.cookies.get(SESSION_COOKIE_NAME)?.value);
 
   const isProtected =
-    pathname.startsWith("/pods") || pathname.startsWith("/profile");
-  const isAuthPage = pathname === "/login" || pathname === "/register";
+    pathname === "/pods" ||
+    pathname.startsWith("/pods/") ||
+    pathname === "/profile" ||
+    pathname.startsWith("/profile/");
 
+  // Cookie presence is a soft gate only. Validity is checked client-side via
+  // /api/auth/session. Do NOT bounce /login|/register back to /pods on cookie
+  // alone — a stale cookie causes an infinite pods↔login loop and stuck UIs.
   if (isProtected && !hasSession) {
     const loginUrl = new URL("/login", request.url);
     const next = `${pathname}${request.nextUrl.search}`;
@@ -23,13 +28,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isAuthPage && hasSession) {
-    return NextResponse.redirect(new URL("/pods", request.url));
-  }
-
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/pods/:path*", "/profile/:path*", "/login", "/register"],
+  matcher: ["/pods", "/pods/:path*", "/profile", "/profile/:path*", "/login", "/register"],
 };

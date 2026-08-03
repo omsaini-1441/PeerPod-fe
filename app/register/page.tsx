@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
   const { register } = useAuth();
+  const { loading, ready } = useRedirectIfAuthenticated();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,6 +41,14 @@ export default function RegisterPage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (loading || !ready) {
+    return (
+      <section className="mx-auto max-w-md py-12 text-slate-300">
+        Checking your session...
+      </section>
+    );
   }
 
   return (
@@ -107,5 +117,17 @@ export default function RegisterPage() {
         </CardContent>
       </Card>
     </section>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <section className="mx-auto max-w-md py-12 text-slate-300">Loading...</section>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
   );
 }

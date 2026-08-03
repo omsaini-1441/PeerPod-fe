@@ -62,6 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!session.authenticated || !session.user) {
         applyLoggedOut();
+        // Clear any stale httpOnly cookie so middleware stops treating us as signed in.
+        void authRequest("/api/auth/logout", { method: "POST" }).catch(() => {});
         return;
       }
 
@@ -86,8 +88,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     function onUnauthorized() {
       applyLoggedOut();
-      if (window.location.pathname.startsWith("/pods") || window.location.pathname.startsWith("/profile")) {
-        window.location.assign("/login");
+      void authRequest("/api/auth/logout", { method: "POST" }).catch(() => {});
+      if (
+        window.location.pathname.startsWith("/pods") ||
+        window.location.pathname.startsWith("/profile")
+      ) {
+        const next = window.location.pathname + window.location.search;
+        window.location.assign(`/login?next=${encodeURIComponent(next)}`);
       }
     }
 
