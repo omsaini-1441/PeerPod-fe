@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Crown, TrendingUp } from "lucide-react";
+import { Crown, Flame, TrendingUp } from "lucide-react";
 import type { LeaderboardPeriod, LeaderboardResponse, Profile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,7 +50,10 @@ export function LeaderboardCard({
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <CardTitle>Race board</CardTitle>
+            <CardTitle className="inline-flex items-center gap-2">
+              <Flame className="h-5 w-5 text-[var(--chase)]" />
+              Race board
+            </CardTitle>
             <CardDescription className="mt-1">
               {period === "day"
                 ? "Today's race — the board resets with the sun."
@@ -152,36 +155,44 @@ export function LeaderboardCard({
               </div>
             </div>
 
-            <div className="space-y-4 rounded-2xl border border-[var(--border)] bg-black/20 p-4">
+            <div className="space-y-5 rounded-2xl border border-[var(--border)] bg-[radial-gradient(ellipse_at_top,_rgba(255,159,67,0.06),_transparent_55%),#0a0c0b] p-4">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[var(--muted)]">
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-[var(--leader)]" />
-                  Leading
+                  <span className="h-2 w-2 rounded-full bg-[var(--leader)] shadow-[0_0_8px_var(--leader)]" />
+                  Leading heat
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-[var(--chase)]" />
-                  You
+                  <span className="h-2 w-2 rounded-full bg-[var(--chase)] shadow-[0_0_8px_var(--chase)]" />
+                  Your burn
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-[var(--muted)]" />
-                  Others
+                  Field
                 </span>
               </div>
 
-              <div className="space-y-4">
-                {entries.map((entry) => {
+              <div className="space-y-5">
+                {entries.map((entry, index) => {
                   const isCurrentUser = profile?.id === entry.userId;
                   const isFirst = entry.rank === 1;
-                  const widthPct = Math.max(8, (entry.points / maxPoints) * 100);
+                  const widthPct = Math.max(10, (entry.points / maxPoints) * 100);
                   const pointsBehindLeader = leader
                     ? Math.max(0, leader.points - entry.points)
                     : 0;
+                  const tone = isFirst
+                    ? "leader"
+                    : isCurrentUser
+                      ? "chase"
+                      : "field";
 
                   return (
                     <motion.div
                       key={`race-${entry.userId}`}
                       layout
-                      className="space-y-1.5"
+                      className="space-y-2"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.04 }}
                     >
                       <div className="flex items-baseline justify-between gap-3">
                         <div className="min-w-0">
@@ -191,14 +202,16 @@ export function LeaderboardCard({
                                 "pp-mono mr-2",
                                 isFirst
                                   ? "text-[var(--leader)]"
-                                  : "text-[var(--muted)]",
+                                  : isCurrentUser
+                                    ? "text-[var(--chase)]"
+                                    : "text-[var(--muted)]",
                               )}
                             >
                               #{entry.rank}
                             </span>
                             {entry.username}
                             {isCurrentUser ? " · you" : ""}
-                            {isFirst ? " · leading" : ""}
+                            {isFirst ? " · hot seat" : ""}
                           </p>
                           {!isFirst && pointsBehindLeader > 0 ? (
                             <p className="mt-0.5 pl-8 text-xs text-[var(--muted)]">
@@ -218,23 +231,33 @@ export function LeaderboardCard({
                           )}
                         />
                       </div>
-                      <div className="h-3 overflow-hidden rounded-full bg-white/[0.06]">
+
+                      <div className="pp-race-track">
                         <motion.div
-                          className={cn(
-                            "h-full rounded-full",
-                            isFirst
-                              ? "bg-[var(--leader)]"
-                              : isCurrentUser
-                                ? "bg-[var(--chase)]"
-                                : "bg-[var(--muted)]/55",
-                          )}
+                          className={cn("pp-race-fill", `pp-race-fill--${tone}`)}
                           initial={{ width: 0 }}
                           animate={{ width: `${widthPct}%` }}
                           transition={{
-                            duration: 0.7,
+                            duration: 0.85,
                             ease: [0.22, 1, 0.36, 1],
+                            delay: index * 0.05,
                           }}
-                        />
+                        >
+                          <span className="pp-race-sheen" aria-hidden />
+                          <span
+                            className={cn(
+                              "pp-race-ember",
+                              tone === "leader" && "pp-race-ember--leader",
+                              tone === "chase" && "pp-race-ember--chase",
+                            )}
+                            aria-hidden
+                          />
+                        </motion.div>
+                        {isFirst ? (
+                          <span className="pp-race-crown" aria-hidden>
+                            <Flame className="h-3.5 w-3.5" />
+                          </span>
+                        ) : null}
                       </div>
                     </motion.div>
                   );

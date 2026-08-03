@@ -106,9 +106,7 @@ html {
 
 body {
   min-height: 100dvh;
-  background:
-    radial-gradient(ellipse 70% 45% at 8% -8%, rgba(198, 243, 90, 0.07), transparent 55%),
-    linear-gradient(180deg, #0c0f0d 0%, #090b0a 42%, #070807 100%);
+  background: #090b0a;
   color: var(--foreground);
   font-family: var(--font-outfit), system-ui, sans-serif;
 }
@@ -201,4 +199,197 @@ textarea {
 
 .pp-ease {
   transition-timing-function: var(--ease-out-expo);
+}
+
+/* Race track — fire / competition bars */
+.pp-race-track {
+  position: relative;
+  height: 0.85rem;
+  overflow: visible;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 11px,
+      rgba(255, 255, 255, 0.035) 11px,
+      rgba(255, 255, 255, 0.035) 12px
+    );
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.pp-race-fill {
+  position: relative;
+  height: 100%;
+  min-width: 1.25rem;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.pp-race-fill--leader {
+  background: linear-gradient(
+    90deg,
+    #7a4a08 0%,
+    #f0b429 38%,
+    #f5d76e 72%,
+    #fff1a8 100%
+  );
+  box-shadow:
+    0 0 18px rgba(245, 215, 110, 0.45),
+    0 0 4px rgba(255, 200, 80, 0.8);
+}
+
+.pp-race-fill--chase {
+  background: linear-gradient(
+    90deg,
+    #7a2e08 0%,
+    #ff6b1a 42%,
+    #ff9f43 78%,
+    #ffd0a0 100%
+  );
+  box-shadow:
+    0 0 16px rgba(255, 159, 67, 0.5),
+    0 0 4px rgba(255, 120, 40, 0.75);
+}
+
+.pp-race-fill--field {
+  background: linear-gradient(
+    90deg,
+    #2a322a 0%,
+    #6d7a6d 55%,
+    #a8b4a8 100%
+  );
+  box-shadow: 0 0 8px rgba(143, 153, 143, 0.2);
+}
+
+.pp-race-sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 48%,
+    transparent 62%
+  );
+  background-size: 220% 100%;
+  animation: pp-race-sheen 2.4s var(--ease-out-expo) infinite;
+  pointer-events: none;
+}
+
+.pp-race-ember {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  translate: 35% -50%;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.pp-race-ember--leader {
+  background: radial-gradient(circle, #fff6c2 0%, #f5d76e 35%, transparent 70%);
+  box-shadow: 0 0 14px rgba(245, 215, 110, 0.9);
+  animation: pp-race-flicker 1.1s ease-in-out infinite;
+}
+
+.pp-race-ember--chase {
+  background: radial-gradient(circle, #ffe0b8 0%, #ff9f43 40%, transparent 72%);
+  box-shadow: 0 0 14px rgba(255, 159, 67, 0.95);
+  animation: pp-race-flicker 0.9s ease-in-out infinite;
+}
+
+.pp-race-crown {
+  position: absolute;
+  top: 50%;
+  right: 0.15rem;
+  display: flex;
+  translate: 0 -50%;
+  color: #1a1204;
+  filter: drop-shadow(0 0 6px rgba(245, 215, 110, 0.8));
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes pp-race-sheen {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -40% 0;
+  }
+}
+
+@keyframes pp-race-flicker {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+.pp-meteor {
+  animation-name: pp-meteor-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.pp-meteor::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(198, 243, 90, 0), rgba(198, 243, 90, 0.85));
+}
+
+.pp-grid-scan {
+  animation: pp-grid-scan 7s linear infinite;
+}
+
+@keyframes pp-meteor-fall {
+  0% {
+    transform: rotate(215deg) translateX(0);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(215deg) translateX(-520px);
+    opacity: 0;
+  }
+}
+
+@keyframes pp-grid-scan {
+  0% {
+    transform: translateY(-20%);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.55;
+  }
+  85% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateY(120vh);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-race-sheen,
+  .pp-race-ember--leader,
+  .pp-race-ember--chase,
+  .pp-meteor,
+  .pp-grid-scan {
+    animation: none;
+  }
 }

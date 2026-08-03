@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="PeerPod">
+  <rect width="64" height="64" rx="20" fill="#c6f35a"/>
+  <circle cx="24" cy="28" r="8" fill="#0c1406" opacity="0.92"/>
+  <circle cx="40" cy="28" r="8" fill="#0c1406" opacity="0.92"/>
+  <circle cx="32" cy="40" r="7" fill="#0c1406" opacity="0.92"/>
+  <path d="M24 28h16M28.5 33.5L32 40l3.5-6.5" stroke="#c6f35a" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="24" cy="28" r="2.2" fill="#c6f35a"/>
+  <circle cx="40" cy="28" r="2.2" fill="#c6f35a"/>
+  <circle cx="32" cy="40" r="2.2" fill="#c6f35a"/>
+</svg>

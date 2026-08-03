@@ -4,6 +4,8 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Lock, Plus, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { InteractiveGrid } from "@/components/aceternity/interactive-grid";
+import { SparklesCore } from "@/components/aceternity/sparkles";
 import { ApiError, apiRequest } from "@/lib/api";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import type { Group } from "@/lib/types";
@@ -176,15 +178,19 @@ export default function PodsPage() {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={spring}
-        className="max-w-2xl space-y-3"
+        className="relative overflow-hidden rounded-[1.75rem] border border-[var(--border)] bg-[#0c0f0d]/40"
       >
-        <h1 className="pp-display text-4xl font-semibold text-white sm:text-5xl">
-          Rooms that keep you honest
-        </h1>
-        <p className="max-w-[55ch] text-[var(--muted)] leading-relaxed">
-          Create or open a pod, then let the timer and leaderboard do the
-          accountability work.
-        </p>
+        <InteractiveGrid cellSize={44} glowRadius={140} className="opacity-80" />
+        <SparklesCore density={14} speed={0.08} className="opacity-25" />
+        <div className="relative z-10 max-w-2xl space-y-3 px-6 py-10 sm:px-8 sm:py-12">
+          <h1 className="pp-display text-4xl font-semibold text-white sm:text-5xl">
+            Rooms that keep you honest
+          </h1>
+          <p className="max-w-[55ch] text-[var(--muted)] leading-relaxed">
+            Create or open a pod, then let the timer and leaderboard do the
+            accountability work.
+          </p>
+        </div>
       </motion.div>
 
       <div className="grid gap-6 lg:grid-cols-12 lg:items-start">

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SiteAtmosphere, type AtmosphereVariant } from "@/components/aceternity/site-atmosphere";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -11,21 +13,29 @@ const navItems = [
   { href: "/profile", label: "Profile" },
 ];
 
+function atmosphereForPath(pathname: string): AtmosphereVariant {
+  if (pathname === "/") return "hero";
+  if (pathname === "/pods") return "pods";
+  if (pathname.startsWith("/pods/")) return "room";
+  return "app";
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { authUser, isAuthenticated, logout } = useAuth();
+  const atmosphere = atmosphereForPath(pathname);
 
   return (
-    <div className="pp-shell overflow-x-hidden text-[var(--foreground)]">
+    <div className="pp-shell relative overflow-x-hidden text-[var(--foreground)]">
+      <SiteAtmosphere variant={atmosphere} />
+
       <div className="sticky top-0 z-40 px-4 pt-4 sm:px-5">
         <header className="mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-full border border-[var(--border)] bg-[#0c0f0d]/75 px-3 py-2 shadow-[0_8px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:px-4">
           <Link
             href={isAuthenticated ? "/pods" : "/"}
             className="flex min-w-0 items-center gap-2.5 rounded-full py-1 pl-1 pr-2 transition-opacity hover:opacity-90"
           >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-bold text-[var(--accent-ink)]">
-              PP
-            </div>
+            <BrandMark size={32} />
             <span className="pp-display truncate text-base font-semibold tracking-tight text-white sm:text-lg">
               PeerPod
             </span>
@@ -91,7 +101,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
       </div>
 
-      <main className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-6 sm:py-12">
+      <main className="relative z-10 mx-auto w-full max-w-6xl px-5 py-8 sm:px-6 sm:py-12">
         {children}
       </main>
     </div>

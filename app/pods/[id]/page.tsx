@@ -376,6 +376,9 @@ export default function PodDetailPage() {
       setTasks((current) =>
         current.map((task) => (task.id === taskId ? updated : task)),
       );
+      if (status === "DONE" || status === "IN_PROGRESS") {
+        void refreshLeaderboard(leaderboardPeriod);
+      }
       if (status === "DONE") {
         toast.success("Task completed.");
       }
@@ -418,6 +421,7 @@ export default function PodDetailPage() {
       setZenModeOpen(true);
       setNotice("Focus block started. Stay in the work.");
       void refreshPresence();
+      void refreshLeaderboard(leaderboardPeriod);
     } catch (caughtError) {
       toast.error(
         caughtError instanceof ApiError
@@ -487,6 +491,7 @@ export default function PodDetailPage() {
       void refreshHeatmap();
       void refreshPresence();
       void refreshProfile();
+      void refreshLeaderboard(leaderboardPeriod);
     } catch (caughtError) {
       toast.error(
         caughtError instanceof ApiError

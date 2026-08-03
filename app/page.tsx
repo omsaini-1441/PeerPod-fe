@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { Flame, Swords, Trophy, Zap } from "lucide-react";
 import { useMemo } from "react";
+import { BackgroundBeams } from "@/components/aceternity/background-beams";
+import { Meteors } from "@/components/aceternity/meteors";
+import { SparklesCore } from "@/components/aceternity/sparkles";
+import { Spotlight } from "@/components/aceternity/spotlight";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,20 +31,37 @@ export default function Home() {
   const ctaLabel = isAuthenticated ? "Open your pods" : "Create your account";
 
   return (
-    <section className="relative grid min-h-[calc(100dvh-7rem)] items-center gap-12 py-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 lg:py-10">
+    <section className="relative grid min-h-[calc(100dvh-7rem)] items-center gap-12 overflow-hidden py-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:py-10">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={spring}
-        className="space-y-8"
+        className="relative z-10 space-y-8"
       >
         <div className="space-y-5">
-          <h1 className="pp-display max-w-5xl text-[clamp(3rem,6vw,5.25rem)] font-semibold leading-[1.05] text-white">
-            PeerPod
-          </h1>
+          <div className="flex items-center gap-3">
+            <BrandMark size={48} />
+            <h1 className="pp-display text-[clamp(3rem,6vw,5.25rem)] font-semibold leading-[1.05] text-white">
+              PeerPod
+            </h1>
+          </div>
           <p className="max-w-xl text-xl leading-relaxed text-[var(--muted)] sm:text-2xl">
             Finish the work because your pod can see the board move.
           </p>
+          <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-white/[0.03] px-3 py-1.5">
+              <Trophy className="h-3.5 w-3.5 text-[var(--leader)]" />
+              Live race board
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-white/[0.03] px-3 py-1.5">
+              <Zap className="h-3.5 w-3.5 text-[var(--accent)]" />
+              Focus heat
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-white/[0.03] px-3 py-1.5">
+              <Swords className="h-3.5 w-3.5 text-[var(--chase)]" />
+              Pod competition
+            </span>
+          </div>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -62,18 +85,62 @@ export default function Home() {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...spring, delay: 0.08 }}
+        className="relative z-10 space-y-4"
       >
-        <Card>
-          <CardContent className="relative space-y-6 overflow-hidden p-6 sm:p-7">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-[var(--accent)]/10 blur-3xl"
-            />
+        <div className="relative overflow-hidden rounded-[1.75rem] border border-[var(--border)] bg-[#0c0f0d]/80 p-1">
+          <div className="relative overflow-hidden rounded-[calc(1.75rem-0.25rem)] border border-[var(--border)] bg-[#0a0c0b] px-5 py-6 sm:px-6">
+            <BackgroundBeams className="opacity-60" />
+            <SparklesCore density={40} className="opacity-50" />
+            <Meteors number={10} />
+            <Spotlight size={420} color="rgba(245, 215, 110, 0.12)" />
 
-            <div className="flex items-end justify-between gap-3">
+            <div className="relative z-10 space-y-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="inline-flex items-center gap-1.5 text-sm text-[var(--chase)]">
+                    <Flame className="h-4 w-4" />
+                    Arena preview
+                  </p>
+                  <p className="pp-display mt-1 text-2xl font-semibold text-white">
+                    Rank climb simulation
+                  </p>
+                </div>
+                <div className="rounded-full border border-[var(--accent)]/25 bg-[var(--accent-soft)] px-3 py-1.5 text-sm text-[#d7f98a]">
+                  LIVE
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: "Heat", value: "94%" },
+                  { label: "Gap", value: "1 pt" },
+                  { label: "Focus", value: "22:14" },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="rounded-2xl border border-[var(--border)] bg-black/35 px-3 py-3"
+                  >
+                    <p className="text-[11px] text-[var(--muted)]">{stat.label}</p>
+                    <p className="pp-mono mt-1 text-lg text-white">{stat.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-sm text-[var(--muted)]">
+                Not stock photos — a live competitive HUD of what your pod feels
+                like when the board is moving.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <Card>
+          <CardContent className="relative space-y-5 overflow-hidden p-5 sm:p-6">
+            <Spotlight size={360} color="rgba(255, 159, 67, 0.1)" />
+            <div className="relative z-10 flex items-end justify-between gap-3">
               <div>
-                <p className="text-sm text-[var(--muted)]">Live board</p>
-                <p className="pp-display mt-1 text-2xl font-semibold text-white">
+                <p className="text-sm text-[var(--muted)]">Race board</p>
+                <p className="pp-display mt-1 text-xl font-semibold text-white">
                   Exam Sprint
                 </p>
               </div>
@@ -86,14 +153,14 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="relative z-10 space-y-3">
               {boardRows.map((row, index) => (
                 <motion.div
                   key={row.rank}
                   initial={{ opacity: 0, x: 12 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ ...spring, delay: 0.12 + index * 0.06 }}
-                  className="space-y-2 rounded-2xl border border-[var(--border)] bg-black/20 px-3.5 py-3"
+                  className="space-y-2"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -112,32 +179,30 @@ export default function Home() {
                     </div>
                     <Score value={row.points} className="text-white" suffix="pts" />
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-white/5">
+                  <div className="pp-race-track">
                     <motion.div
-                      className={`h-full rounded-full ${
+                      className={`pp-race-fill ${
                         row.tone === "leader"
-                          ? "bg-[var(--leader)]"
-                          : row.tone === "you"
-                            ? "bg-[var(--accent)]"
-                            : "bg-[var(--chase)]"
+                          ? "pp-race-fill--leader"
+                          : "pp-race-fill--chase"
                       }`}
                       initial={{ width: 0 }}
                       animate={{ width: `${row.width}%` }}
                       transition={{ ...spring, delay: 0.2 + index * 0.08 }}
-                    />
+                    >
+                      <span className="pp-race-sheen" aria-hidden />
+                      <span
+                        className={`pp-race-ember ${
+                          row.tone === "leader"
+                            ? "pp-race-ember--leader"
+                            : "pp-race-ember--chase"
+                        }`}
+                        aria-hidden
+                      />
+                    </motion.div>
                   </div>
                 </motion.div>
               ))}
-            </div>
-
-            <div className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface-inset)] px-4 py-4">
-              <div>
-                <p className="text-sm text-[var(--muted)]">Focus block</p>
-                <p className="pp-mono mt-1 text-3xl tracking-tight text-white">
-                  22:14
-                </p>
-              </div>
-              <div className="h-12 w-12 rounded-full border border-[var(--accent)]/30 bg-[var(--accent-soft)] shadow-[0_0_24px_var(--glow)]" />
             </div>
           </CardContent>
         </Card>
