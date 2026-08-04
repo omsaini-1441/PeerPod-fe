@@ -176,9 +176,9 @@ export default function PodsPage() {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={spring}
-        className="relative overflow-hidden rounded-[1.75rem] border border-[var(--border)] bg-[#0c0f0d]/35 backdrop-blur-[2px]"
+        className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(198,243,90,0.06),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(198,243,90,0.07),transparent_55%)]" />
         <div className="relative z-10 max-w-2xl space-y-3 px-6 py-10 sm:px-8 sm:py-12">
           <h1 className="pp-display text-4xl font-semibold text-white sm:text-5xl">
             Rooms that keep you honest
