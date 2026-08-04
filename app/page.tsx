@@ -4,10 +4,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Flame, Swords, Trophy, Zap } from "lucide-react";
 import { useMemo } from "react";
-import { BackgroundBeams } from "@/components/aceternity/background-beams";
-import { Meteors } from "@/components/aceternity/meteors";
-import { SparklesCore } from "@/components/aceternity/sparkles";
-import { Spotlight } from "@/components/aceternity/spotlight";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
@@ -89,10 +85,7 @@ export default function Home() {
       >
         <div className="relative overflow-hidden rounded-[1.75rem] border border-[var(--border)] bg-[#0c0f0d]/80 p-1">
           <div className="relative overflow-hidden rounded-[calc(1.75rem-0.25rem)] border border-[var(--border)] bg-[#0a0c0b] px-5 py-6 sm:px-6">
-            <BackgroundBeams className="opacity-60" />
-            <SparklesCore density={40} className="opacity-50" />
-            <Meteors number={10} />
-            <Spotlight size={420} color="rgba(245, 215, 110, 0.12)" />
+            <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_80%_0%,rgba(198,243,90,0.08),transparent_65%)]" />
 
             <div className="relative z-10 space-y-5">
               <div className="flex items-start justify-between gap-3">
@@ -136,7 +129,6 @@ export default function Home() {
 
         <Card>
           <CardContent className="relative space-y-5 overflow-hidden p-5 sm:p-6">
-            <Spotlight size={360} color="rgba(255, 159, 67, 0.1)" />
             <div className="relative z-10 flex items-end justify-between gap-3">
               <div>
                 <p className="text-sm text-[var(--muted)]">Race board</p>

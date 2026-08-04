@@ -1,20 +1,19 @@
-"use client";
-
-import { useId } from "react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-type BackgroundBeamsProps = {
+type BeamsProps = {
   className?: string;
-  /** hero = brighter brand hues; elegant = soft cool Aceternity-style */
+  /** hero = brand lime/gold; elegant = soft cool with a lime hint */
   tone?: "hero" | "elegant";
+  /** unique per page placement so gradient ids never collide */
+  idPrefix: string;
 };
 
-export function BackgroundBeams({
-  className,
-  tone = "elegant",
-}: BackgroundBeamsProps) {
-  const uid = useId().replace(/:/g, "");
+/**
+ * Aceternity-style background beams, server-rendered.
+ * Animation is pure CSS (stroke-dashoffset via .pp-beam), so the beams
+ * paint with the first frame instead of popping in after hydration.
+ */
+export function Beams({ className, tone = "elegant", idPrefix }: BeamsProps) {
   const colors =
     tone === "hero"
       ? ["#c6f35a", "#f5d76e", "#a8c978"]
@@ -30,43 +29,31 @@ export function BackgroundBeams({
     >
       <svg
         className="absolute inset-0 h-full w-full"
-        width="100%"
-        height="100%"
         viewBox="0 0 696 316"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         preserveAspectRatio="xMidYMid slice"
       >
-        <g clipPath={`url(#${uid}-clip)`}>
-          {PATHS.map((path, index) => (
-            <motion.path
-              key={`${uid}-${index}`}
-              d={path}
-              stroke={`url(#${uid}-grad-${index % colors.length})`}
-              strokeOpacity={tone === "elegant" ? 0.35 : 0.5}
-              strokeWidth={tone === "elegant" ? 0.6 : 1}
-              initial={{ pathLength: 0.2, opacity: 0.15 }}
-              animate={{
-                pathLength: [0.15, 1, 0.35, 1],
-                opacity: [0.12, 0.55, 0.2, 0.45],
-              }}
-              transition={{
-                duration: 10 + index * 1.1,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: index * 0.45,
-              }}
-            />
-          ))}
-        </g>
+        {PATHS.map((path, index) => (
+          <path
+            key={index}
+            d={path}
+            pathLength={1}
+            className="pp-beam"
+            stroke={`url(#${idPrefix}-grad-${index % colors.length})`}
+            strokeOpacity={tone === "elegant" ? 0.35 : 0.5}
+            strokeWidth={tone === "elegant" ? 0.6 : 1}
+            style={{
+              animationDuration: `${9 + index * 1.1}s`,
+              animationDelay: `-${index * 1.7}s`,
+            }}
+          />
+        ))}
         <defs>
-          <clipPath id={`${uid}-clip`}>
-            <rect width="696" height="316" fill="white" />
-          </clipPath>
           {colors.map((color, index) => (
             <linearGradient
-              key={`${uid}-g-${index}`}
-              id={`${uid}-grad-${index}`}
+              key={index}
+              id={`${idPrefix}-grad-${index}`}
               x1="0%"
               y1="0%"
               x2="100%"
@@ -96,7 +83,4 @@ const PATHS = [
   "M-317 -261C-317 -261 -249 144 215 271C679 398 747 803 747 803",
   "M-310 -269C-310 -269 -242 136 222 263C686 390 754 795 754 795",
   "M-303 -277C-303 -277 -235 128 229 255C693 382 761 787 761 787",
-  "M-296 -285C-296 -285 -228 120 236 247C700 374 768 779 768 779",
-  "M-289 -293C-289 -293 -221 112 243 239C707 366 775 771 775 771",
-  "M-282 -301C-282 -301 -214 104 250 231C714 358 782 763 782 763",
 ];

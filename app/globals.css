@@ -333,63 +333,28 @@ textarea {
   }
 }
 
-.pp-meteor {
-  animation-name: pp-meteor-fall;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-
-.pp-meteor::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 60px;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(198, 243, 90, 0), rgba(198, 243, 90, 0.85));
-}
-
-.pp-grid-scan {
-  animation: pp-grid-scan 7s linear infinite;
-}
-
-@keyframes pp-meteor-fall {
-  0% {
-    transform: rotate(215deg) translateX(0);
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
-    transform: rotate(215deg) translateX(-520px);
-    opacity: 0;
+/* Beams: static faint lines by default; the flowing dash only runs for
+   users who allow motion. CSS-driven, so it starts on first paint. */
+@media (prefers-reduced-motion: no-preference) {
+  .pp-beam {
+    stroke-dasharray: 0.5 1.5;
+    stroke-dashoffset: 2;
+    animation-name: pp-beam-flow;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
   }
 }
 
-@keyframes pp-grid-scan {
-  0% {
-    transform: translateY(-20%);
-    opacity: 0;
-  }
-  15% {
-    opacity: 0.55;
-  }
-  85% {
-    opacity: 0.35;
-  }
-  100% {
-    transform: translateY(120vh);
-    opacity: 0;
+@keyframes pp-beam-flow {
+  to {
+    stroke-dashoffset: 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .pp-race-sheen,
   .pp-race-ember--leader,
-  .pp-race-ember--chase,
-  .pp-meteor,
-  .pp-grid-scan {
+  .pp-race-ember--chase {
     animation: none;
   }
 }

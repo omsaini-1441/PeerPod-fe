@@ -1,12 +1,8 @@
-"use client";
-
-import { BackgroundBeams } from "@/components/aceternity/background-beams";
-import { GridBackground } from "@/components/aceternity/grid-background";
-import { HeroColorWash } from "@/components/aceternity/hero-color-wash";
-import { InteractiveGrid } from "@/components/aceternity/interactive-grid";
-import { Meteors } from "@/components/aceternity/meteors";
-import { SparklesCore } from "@/components/aceternity/sparkles";
-import { Spotlight } from "@/components/aceternity/spotlight";
+import { Beams } from "@/components/aceternity/beams";
+import {
+  CursorGlow,
+  CursorGridGlow,
+} from "@/components/aceternity/cursor-glow";
 import { cn } from "@/lib/utils";
 
 export type AtmosphereVariant = "hero" | "pods" | "room" | "app";
@@ -16,66 +12,57 @@ type SiteAtmosphereProps = {
   variant?: AtmosphereVariant;
 };
 
+/**
+ * One atmosphere per page. The base is static CSS gradients that paint
+ * with the first frame; the beams are server-rendered SVG animated by
+ * pure CSS; the cursor layers stay invisible until the pointer moves.
+ * Nothing pops in after hydration.
+ */
 export function SiteAtmosphere({
   className,
   variant = "app",
 }: SiteAtmosphereProps) {
-  if (variant === "hero") {
-    return (
-      <div
-        className={cn(
-          "pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#090b0a]",
-          className,
-        )}
-        aria-hidden
-      >
-        <HeroColorWash />
-        <GridBackground className="opacity-55" />
-        <BackgroundBeams tone="hero" className="opacity-80" />
-        <SparklesCore density={56} speed={0.4} className="opacity-65" />
-        <Meteors number={16} />
-        <Spotlight size={640} color="rgba(198, 243, 90, 0.14)" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#090b0a_78%)]" />
-      </div>
-    );
-  }
-
-  if (variant === "pods") {
-    return (
-      <div
-        className={cn(
-          "pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#070908]",
-          className,
-        )}
-        aria-hidden
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(18,24,20,0.9),#070908_70%)]" />
-        <InteractiveGrid cellSize={52} glowRadius={170} className="opacity-90" />
-        <SparklesCore
-          density={18}
-          speed={0.1}
-          color="#c6f35a"
-          className="opacity-25"
-        />
-        <Spotlight size={680} color="rgba(198, 243, 90, 0.08)" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_15%,#070908_82%)]" />
-        <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[#070908] to-transparent" />
-      </div>
-    );
-  }
-
-  // room + app (login / register / profile): elegant Background Beams
   return (
     <div
       className={cn(
-        "pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#050505]",
+        "pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#090b0a]",
         className,
       )}
       aria-hidden
     >
-      <BackgroundBeams tone="elegant" className="opacity-100" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,transparent_20%,#050505_75%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(198,243,90,0.03),transparent_45%)]" />
+      {variant === "hero" ? (
+        <>
+          <div className="absolute inset-0 bg-[radial-gradient(55%_45%_at_72%_-5%,rgba(198,243,90,0.11),transparent_70%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(40%_35%_at_12%_25%,rgba(245,215,110,0.06),transparent_70%)]" />
+          <Beams tone="hero" idPrefix="atmo-hero" className="opacity-70" />
+          <CursorGlow size={620} color="rgba(198, 243, 90, 0.1)" />
+        </>
+      ) : null}
+
+      {variant === "pods" ? (
+        <>
+          <div
+            className="absolute inset-0 opacity-40"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(198,243,90,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(198,243,90,0.045) 1px, transparent 1px)",
+              backgroundSize: "52px 52px",
+            }}
+          />
+          <CursorGridGlow cellSize={52} radius={210} />
+          <div className="absolute inset-0 bg-[radial-gradient(60%_45%_at_50%_0%,rgba(198,243,90,0.07),transparent_70%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,#090b0a_88%)]" />
+        </>
+      ) : null}
+
+      {variant === "room" || variant === "app" ? (
+        <>
+          <div className="absolute inset-0 bg-[radial-gradient(50%_40%_at_50%_-5%,rgba(198,243,90,0.07),transparent_70%)]" />
+          <Beams tone="elegant" idPrefix="atmo-app" className="opacity-80" />
+        </>
+      ) : null}
+
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.42)_100%)]" />
     </div>
   );
 }

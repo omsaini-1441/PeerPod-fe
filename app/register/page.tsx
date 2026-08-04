@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
-import { BackgroundBeams } from "@/components/aceternity/background-beams";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -56,7 +55,7 @@ function RegisterForm() {
   return (
     <section className="mx-auto grid max-w-4xl gap-6 py-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch lg:py-12">
       <div className="relative hidden min-h-[24rem] overflow-hidden rounded-[1.75rem] border border-[var(--border)] bg-[#050505] lg:block">
-        <BackgroundBeams tone="elegant" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(198,243,90,0.1),transparent_55%),radial-gradient(ellipse_at_bottom_left,rgba(245,215,110,0.06),transparent_50%)]" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent" />
         <div className="absolute bottom-5 left-5 right-5 space-y-2">
           <p className="pp-display text-2xl font-semibold text-white">
