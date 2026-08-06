@@ -1,48 +1,45 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 type BeamsProps = {
   className?: string;
-  tone?: "hero" | "elegant";
 };
 
 /**
- * Aceternity Background Beams.
- * Grey rails paint immediately. Traveling pulses start after mount and
- * animate gradient x1/y1/x2/y2 via rAF (the official technique, without
- * relying on motion.linearGradient which was failing silently here).
+ * Aceternity Background Beams defaults:
+ * - grey rails
+ * - short cyan→purple→violet gradient pulses riding the rails
+ * - strokeWidth 0.5, sparse staggered travel
  */
-export function Beams({ className, tone = "elegant" }: BeamsProps) {
+export function Beams({ className }: BeamsProps) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const [ready, setReady] = useState(false);
-  const pulseColors: [string, string, string] =
-    tone === "hero"
-      ? ["#c6f35a", "#f5d76e", "#ff9f43"]
-      : ["#c6f35a", "#a8c978", "#f5d76e"];
 
   useEffect(() => {
-    setReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!ready) return;
     const svg = svgRef.current;
     if (!svg) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const rand = (seed: number) => Math.abs(Math.sin(seed) * 10000) % 1;
-    const gradients = Array.from(
-      svg.querySelectorAll<SVGLinearGradientElement>("linearGradient[data-pulse]"),
+    const pulses = Array.from(
+      svg.querySelectorAll<SVGPathElement>("path[data-beam]"),
     );
 
-    const pulses = gradients.map((el, index) => ({
-      el,
-      duration: (10 + rand(index + 2) * 10) * 1000,
-      delay: rand(index + 3) * 8 * 1000,
-      yEnd: 93 + rand(index + 1) * 8,
-    }));
+    const runners = pulses.map((path, index) => {
+      const length = path.getTotalLength();
+      // Aceternity-scale streak: tiny comet, not a long line (~1.2% of path).
+      const streak = Math.max(12, length * 0.012);
+      path.style.strokeDasharray = `${streak} ${length}`;
+      path.style.strokeDashoffset = `${length}`;
+      path.style.opacity = "0";
+
+      return {
+        path,
+        length,
+        streak,
+        duration: 10000 + ((index * 1379) % 10000),
+        delay: (index * 613) % 10000,
+      };
+    });
 
     let raf = 0;
     const start = performance.now();
@@ -50,22 +47,37 @@ export function Beams({ className, tone = "elegant" }: BeamsProps) {
       t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 
     const tick = (now: number) => {
-      for (const pulse of pulses) {
-        const elapsed = now - start - pulse.delay;
-        if (elapsed < 0) continue;
-        const t = easeInOut((elapsed % pulse.duration) / pulse.duration);
-        const p = t * 100;
-        pulse.el.setAttribute("x1", `${p}%`);
-        pulse.el.setAttribute("x2", `${Math.max(0, p - 5)}%`);
-        pulse.el.setAttribute("y1", `${p}%`);
-        pulse.el.setAttribute("y2", `${t * pulse.yEnd}%`);
+      for (const runner of runners) {
+        const elapsed = now - start - runner.delay;
+        if (elapsed < 0) {
+          runner.path.style.opacity = "0";
+          continue;
+        }
+
+        const cycle = elapsed % runner.duration;
+        const travel = easeInOut(
+          Math.min(1, cycle / (runner.duration * 0.9)),
+        );
+        const offset =
+          runner.length - travel * (runner.length + runner.streak);
+
+        runner.path.style.strokeDashoffset = `${offset}`;
+
+        const fade =
+          travel < 0.06
+            ? travel / 0.06
+            : travel > 0.92
+              ? Math.max(0, (1 - travel) / 0.08)
+              : 1;
+        // Matches Aceternity strokeOpacity ~0.4
+        runner.path.style.opacity = String(0.4 * fade);
       }
       raf = window.requestAnimationFrame(tick);
     };
 
     raf = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(raf);
-  }, [ready, tone]);
+  }, []);
 
   return (
     <div
@@ -83,6 +95,16 @@ export function Beams({ className, tone = "elegant" }: BeamsProps) {
         xmlns="http://www.w3.org/2000/svg"
         preserveAspectRatio="xMidYMid slice"
       >
+        <defs>
+          {/* PeerPod green beam gradient: darker → lighter accent */}
+          <linearGradient id="pp-aceternity-beam" x1="0%" x2="100%" y1="0%" y2="100%">
+            <stop stopColor="#6b8f3a" stopOpacity="0" />
+            <stop stopColor="#6b8f3a" />
+            <stop offset="32.5%" stopColor="#a8c978" />
+            <stop offset="100%" stopColor="#c6f35a" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
         {PATHS.map((path, index) => (
           <path
             key={`rail-${index}`}
@@ -92,36 +114,17 @@ export function Beams({ className, tone = "elegant" }: BeamsProps) {
           />
         ))}
 
-        {ready
-          ? PATHS.map((path, index) => (
-              <path
-                key={`pulse-${index}`}
-                d={path}
-                stroke={`url(#pp-beam-${tone}-${index})`}
-                strokeOpacity="0.6"
-                strokeWidth="0.7"
-              />
-            ))
-          : null}
-
-        <defs>
-          {PATHS.map((_, index) => (
-            <linearGradient
-              key={`g-${index}`}
-              id={`pp-beam-${tone}-${index}`}
-              data-pulse=""
-              x1="0%"
-              x2="0%"
-              y1="0%"
-              y2="0%"
-            >
-              <stop stopColor={pulseColors[0]} stopOpacity="0" />
-              <stop stopColor={pulseColors[0]} />
-              <stop offset="32.5%" stopColor={pulseColors[1]} />
-              <stop offset="100%" stopColor={pulseColors[2]} stopOpacity="0" />
-            </linearGradient>
-          ))}
-        </defs>
+        {PATHS.map((path, index) => (
+          <path
+            key={`beam-${index}`}
+            data-beam=""
+            d={path}
+            stroke="url(#pp-aceternity-beam)"
+            strokeWidth={0.5}
+            strokeLinecap="round"
+            fill="none"
+          />
+        ))}
       </svg>
     </div>
   );

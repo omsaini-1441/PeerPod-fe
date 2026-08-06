@@ -34,9 +34,9 @@ export function SiteAtmosphere({
         <>
           <div className="absolute inset-0 bg-[radial-gradient(55%_45%_at_72%_-5%,rgba(198,243,90,0.11),transparent_70%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(40%_35%_at_12%_25%,rgba(245,215,110,0.06),transparent_70%)]" />
-          <Beams tone="hero" className="opacity-90" />
           <CursorBlob size={480} />
           <CursorGlow size={640} color="rgba(198, 243, 90, 0.1)" />
+          <Beams />
         </>
       ) : null}
 
@@ -60,8 +60,8 @@ export function SiteAtmosphere({
       {variant === "room" || variant === "app" ? (
         <>
           <div className="absolute inset-0 bg-[radial-gradient(50%_40%_at_50%_-5%,rgba(198,243,90,0.07),transparent_70%)]" />
-          <Beams tone="elegant" className="opacity-90" />
           <CursorBlob size={400} />
+          <Beams />
         </>
       ) : null}
     </div>
